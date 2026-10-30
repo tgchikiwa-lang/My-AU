@@ -107,7 +107,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const {data: row,error} = await supabase.from('profiles').select('data').eq('id',auth.user.id).single();
       if(error) throw error;
       const parsed=studentSchema.safeParse(row.data);
-      const next=parsed.success ? parsed.data : {...initial, profile:{...initial.profile,name:auth.user.user_metadata.name ?? 'Student',email:auth.user.email ?? '', studentId:'',phone:'',address:'',dob:''},skills:[],projects:[],academic:[],certificates:[],achievements:[],clubs:[]};
+      const next=parsed.success ? parsed.data : {...initial, profile:{...initial.profile,name:auth.user.user_metadata["name"] ?? 'Student',email:auth.user.email ?? '', studentId:'',phone:'',address:'',dob:''},skills:[],projects:[],academic:[],certificates:[],achievements:[],clubs:[]};
       if(active){owner.current=auth.user.id;current.current=next;setData(next);setReady(true);setStatus('All changes saved');}
     })().catch(e=>{if(active)setStatus(e.message ?? 'Could not load profile. Please refresh.');});
     return()=>{active=false};

@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Eye, EyeOff, KeyRound } from "lucide-react";
 import { Card, PageTitle, btnCls, inputCls } from "@/components/Shell";
-import { passwordStrength, useStore } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
+import { passwordStrength } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/security")({
   head: () => ({
@@ -20,19 +21,21 @@ export const Route = createFileRoute("/_authenticated/security")({
 });
 
 function Security() {
-  const { data, update } = useStore();
+  const [busy,setBusy]=useState(false);
   const [f, setF] = useState({ current: "", next: "", confirm: "" });
   const [show, setShow] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const strength = passwordStrength(f.next);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (f.current !== data.password) return setMsg({ ok: false, text: "Current password is incorrect." });
     if (f.next.length < 8) return setMsg({ ok: false, text: "New password must be at least 8 characters." });
     if (f.next !== f.confirm) return setMsg({ ok: false, text: "New passwords do not match." });
     if (f.next === f.current) return setMsg({ ok: false, text: "New password must be different." });
-    update((s) => ({ ...s, password: f.next }));
+    setBusy(true);
+    const {error}=await supabase.auth.updateUser({password:f.next,current_password:f.current});
+    setBusy(false);
+    if(error)return setMsg({ok:false,text:error.message});
     setF({ current: "", next: "", confirm: "" });
     setMsg({ ok: true, text: "Password changed successfully." });
   };
@@ -60,9 +63,9 @@ function Security() {
               {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {show ? "Hide" : "Show"} passwords
             </Button>
             {msg && <p role="status" className={`text-sm ${msg.ok ? "text-primary" : "text-destructive"}`}>{msg.text}</p>}
-            <Button className={btnCls}>Change password</Button>
+            <Button disabled={busy} className={btnCls}>Change password</Button>
           </form>
-          <p className="mt-4 text-xs text-muted-foreground">Demo password is <code>student123</code>. For educational demonstration only.</p>
+
         </Card>
         <Card>
           <h2 className="mb-3 font-display text-lg">Security tips</h2>
