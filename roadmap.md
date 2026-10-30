@@ -1,4 +1,4 @@
-- [ ] AU welcome page and red/black/white styling
-- [ ] Secure login, five student accounts, private cloud profiles and uploads
-- [ ] Profile export/import and accessible mobile forms/navigation
-- [ ] Verify login, persistence, backup/restore, isolation, and mobile layout
+- [x] AU welcome page and red/black/white styling
+- [x] Secure login, five student accounts, private cloud profiles and uploads
+- [x] Profile export/import and accessible mobile forms/navigation
+- [x] Verify login, persistence, backup/restore, isolation, and mobile layout
