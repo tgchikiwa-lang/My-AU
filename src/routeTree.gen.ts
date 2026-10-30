@@ -10,83 +10,120 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AcademicsRouteImport } from './routes/academics'
-import { Route as ClubsRouteImport } from './routes/clubs'
-import { Route as ProfessionalRouteImport } from './routes/professional'
-import { Route as ProjectsRouteImport } from './routes/projects'
-import { Route as SecurityRouteImport } from './routes/security'
-import { Route as SkillsRouteImport } from './routes/skills'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAcademicsRouteImport } from './routes/_authenticated/academics'
+import { Route as AuthenticatedClubsRouteImport } from './routes/_authenticated/clubs'
+import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
+import { Route as AuthenticatedProfessionalRouteImport } from './routes/_authenticated/professional'
+import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
+import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
+import { Route as AuthenticatedSkillsRouteImport } from './routes/_authenticated/skills'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AcademicsRoute = AcademicsRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAcademicsRoute = AuthenticatedAcademicsRouteImport.update({
   id: '/academics',
   path: '/academics',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ClubsRoute = ClubsRouteImport.update({
+const AuthenticatedClubsRoute = AuthenticatedClubsRouteImport.update({
   id: '/clubs',
   path: '/clubs',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ProfessionalRoute = ProfessionalRouteImport.update({
-  id: '/professional',
-  path: '/professional',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedOverviewRoute = AuthenticatedOverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ProjectsRoute = ProjectsRouteImport.update({
+const AuthenticatedProfessionalRoute =
+  AuthenticatedProfessionalRouteImport.update({
+    id: '/professional',
+    path: '/professional',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
   id: '/projects',
   path: '/projects',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const SecurityRoute = SecurityRouteImport.update({
+const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
   id: '/security',
   path: '/security',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const SkillsRoute = SkillsRouteImport.update({
+const AuthenticatedSkillsRoute = AuthenticatedSkillsRouteImport.update({
   id: '/skills',
   path: '/skills',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/academics': typeof AcademicsRoute
-  '/clubs': typeof ClubsRoute
-  '/professional': typeof ProfessionalRoute
-  '/projects': typeof ProjectsRoute
-  '/security': typeof SecurityRoute
-  '/skills': typeof SkillsRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/academics': typeof AuthenticatedAcademicsRoute
+  '/clubs': typeof AuthenticatedClubsRoute
+  '/overview': typeof AuthenticatedOverviewRoute
+  '/professional': typeof AuthenticatedProfessionalRoute
+  '/projects': typeof AuthenticatedProjectsRoute
+  '/security': typeof AuthenticatedSecurityRoute
+  '/skills': typeof AuthenticatedSkillsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/academics': typeof AcademicsRoute
-  '/clubs': typeof ClubsRoute
-  '/professional': typeof ProfessionalRoute
-  '/projects': typeof ProjectsRoute
-  '/security': typeof SecurityRoute
-  '/skills': typeof SkillsRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/academics': typeof AuthenticatedAcademicsRoute
+  '/clubs': typeof AuthenticatedClubsRoute
+  '/overview': typeof AuthenticatedOverviewRoute
+  '/professional': typeof AuthenticatedProfessionalRoute
+  '/projects': typeof AuthenticatedProjectsRoute
+  '/security': typeof AuthenticatedSecurityRoute
+  '/skills': typeof AuthenticatedSkillsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/academics': typeof AcademicsRoute
-  '/clubs': typeof ClubsRoute
-  '/professional': typeof ProfessionalRoute
-  '/projects': typeof ProjectsRoute
-  '/security': typeof SecurityRoute
-  '/skills': typeof SkillsRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/academics': typeof AuthenticatedAcademicsRoute
+  '/_authenticated/clubs': typeof AuthenticatedClubsRoute
+  '/_authenticated/overview': typeof AuthenticatedOverviewRoute
+  '/_authenticated/professional': typeof AuthenticatedProfessionalRoute
+  '/_authenticated/projects': typeof AuthenticatedProjectsRoute
+  '/_authenticated/security': typeof AuthenticatedSecurityRoute
+  '/_authenticated/skills': typeof AuthenticatedSkillsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
+    | '/reset-password'
     | '/academics'
     | '/clubs'
+    | '/overview'
     | '/professional'
     | '/projects'
     | '/security'
@@ -94,8 +131,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
+    | '/reset-password'
     | '/academics'
     | '/clubs'
+    | '/overview'
     | '/professional'
     | '/projects'
     | '/security'
@@ -103,22 +143,23 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/academics'
-    | '/clubs'
-    | '/professional'
-    | '/projects'
-    | '/security'
-    | '/skills'
+    | '/_authenticated'
+    | '/auth'
+    | '/reset-password'
+    | '/_authenticated/academics'
+    | '/_authenticated/clubs'
+    | '/_authenticated/overview'
+    | '/_authenticated/professional'
+    | '/_authenticated/projects'
+    | '/_authenticated/security'
+    | '/_authenticated/skills'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AcademicsRoute: typeof AcademicsRoute
-  ClubsRoute: typeof ClubsRoute
-  ProfessionalRoute: typeof ProfessionalRoute
-  ProjectsRoute: typeof ProjectsRoute
-  SecurityRoute: typeof SecurityRoute
-  SkillsRoute: typeof SkillsRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -130,59 +171,107 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/academics': {
-      id: '/academics'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/academics': {
+      id: '/_authenticated/academics'
       path: '/academics'
       fullPath: '/academics'
-      preLoaderRoute: typeof AcademicsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedAcademicsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/clubs': {
-      id: '/clubs'
+    '/_authenticated/clubs': {
+      id: '/_authenticated/clubs'
       path: '/clubs'
       fullPath: '/clubs'
-      preLoaderRoute: typeof ClubsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedClubsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/professional': {
-      id: '/professional'
+    '/_authenticated/overview': {
+      id: '/_authenticated/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof AuthenticatedOverviewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/professional': {
+      id: '/_authenticated/professional'
       path: '/professional'
       fullPath: '/professional'
-      preLoaderRoute: typeof ProfessionalRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedProfessionalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/projects': {
-      id: '/projects'
+    '/_authenticated/projects': {
+      id: '/_authenticated/projects'
       path: '/projects'
       fullPath: '/projects'
-      preLoaderRoute: typeof ProjectsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedProjectsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/security': {
-      id: '/security'
+    '/_authenticated/security': {
+      id: '/_authenticated/security'
       path: '/security'
       fullPath: '/security'
-      preLoaderRoute: typeof SecurityRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedSecurityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/skills': {
-      id: '/skills'
+    '/_authenticated/skills': {
+      id: '/_authenticated/skills'
       path: '/skills'
       fullPath: '/skills'
-      preLoaderRoute: typeof SkillsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedSkillsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAcademicsRoute: typeof AuthenticatedAcademicsRoute
+  AuthenticatedClubsRoute: typeof AuthenticatedClubsRoute
+  AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
+  AuthenticatedProfessionalRoute: typeof AuthenticatedProfessionalRoute
+  AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
+  AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
+  AuthenticatedSkillsRoute: typeof AuthenticatedSkillsRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAcademicsRoute: AuthenticatedAcademicsRoute,
+  AuthenticatedClubsRoute: AuthenticatedClubsRoute,
+  AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
+  AuthenticatedProfessionalRoute: AuthenticatedProfessionalRoute,
+  AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
+  AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,
+  AuthenticatedSkillsRoute: AuthenticatedSkillsRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AcademicsRoute: AcademicsRoute,
-  ClubsRoute: ClubsRoute,
-  ProfessionalRoute: ProfessionalRoute,
-  ProjectsRoute: ProjectsRoute,
-  SecurityRoute: SecurityRoute,
-  SkillsRoute: SkillsRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,12 +1,15 @@
+import { Button } from "@/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Award, Plus, School, Trash2, Trophy } from "lucide-react";
 import { Card, PageTitle, btnCls, delBtn, inputCls } from "@/components/Shell";
 import { uid, useStore, type Store } from "@/lib/store";
 
-export const Route = createFileRoute("/academics")({
+export const Route = createFileRoute("/_authenticated/academics")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Academic History, Achievements & Certificates | Africa University" },
       { name: "description", content: "Your full academic history, achievements and certifications." },
       { property: "og:title", content: "Academic History & Certificates | Africa University" },
@@ -46,17 +49,17 @@ function Section<K extends Key>({
         {items.map((it) => (
           <li key={it.id} className="flex items-start justify-between gap-3 py-3">
             <div className="min-w-0">{render(it as Store[K][number])}</div>
-            <button className={delBtn} aria-label="Delete" onClick={() => confirm("Delete this entry?") && update((s) => ({ ...s, [k]: (s[k] as { id: string }[]).filter((x) => x.id !== it.id) }))}>
+            <Button className={delBtn} aria-label="Delete" onClick={() => confirm("Delete this entry?") && update((s) => ({ ...s, [k]: (s[k] as { id: string }[]).filter((x) => x.id !== it.id) }))}>
               <Trash2 className="h-4 w-4" />
-            </button>
+            </Button>
           </li>
         ))}
       </ul>
       <form onSubmit={add} className="grid gap-2 sm:grid-cols-2">
         {fields.map((fd) => (
-          <input key={fd.name} required type={fd.type ?? "text"} className={inputCls} placeholder={fd.placeholder} value={f[fd.name]} onChange={(e) => setF({ ...f, [fd.name]: e.target.value })} />
+          <input aria-label={fd.placeholder} key={fd.name} required type={fd.type ?? "text"} className={inputCls} placeholder={fd.placeholder} value={f[fd.name]} onChange={(e) => setF({ ...f, [fd.name]: e.target.value })} />
         ))}
-        <button className={`${btnCls} sm:col-span-2`}><Plus className="h-4 w-4" /> Add</button>
+        <Button className={`${btnCls} sm:col-span-2`}><Plus className="h-4 w-4" /> Add</Button>
       </form>
     </Card>
   );

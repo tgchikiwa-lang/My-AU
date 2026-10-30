@@ -1,12 +1,16 @@
+import { downloadFile } from "@/lib/cloud-files";
+import { Button } from "@/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Download, Github, Linkedin, Save, Upload } from "lucide-react";
 import { Card, PageTitle, btnCls, btnGhost, inputCls } from "@/components/Shell";
 import { useStore, type Store } from "@/lib/store";
 
-export const Route = createFileRoute("/professional")({
+export const Route = createFileRoute("/_authenticated/professional")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Professional Profile & CV | Africa University" },
       { name: "description", content: "Download your CV and link your GitHub and LinkedIn accounts." },
       { property: "og:title", content: "Professional Profile & CV | Africa University" },
@@ -16,7 +20,7 @@ export const Route = createFileRoute("/professional")({
   component: Professional,
 });
 
-const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] ?? c);
 
 function buildCv(d: Store) {
   const p = d.profile;
@@ -74,12 +78,12 @@ function Professional() {
               <textarea rows={4} className={`${inputCls} mt-1`} value={f.bio} onChange={(e) => setF({ ...f, bio: e.target.value })} />
             </label>
             <label className="block text-sm font-medium">GitHub profile
-              <input type="url" placeholder="https://github.com/username" className={`${inputCls} mt-1`} value={f.github} onChange={(e) => setF({ ...f, github: e.target.value })} />
+              <input type="url" aria-label="https://github.com/username" placeholder="https://github.com/username" className={`${inputCls} mt-1`} value={f.github} onChange={(e) => setF({ ...f, github: e.target.value })} />
             </label>
             <label className="block text-sm font-medium">LinkedIn profile
-              <input type="url" placeholder="https://linkedin.com/in/username" className={`${inputCls} mt-1`} value={f.linkedin} onChange={(e) => setF({ ...f, linkedin: e.target.value })} />
+              <input type="url" aria-label="https://linkedin.com/in/username" placeholder="https://linkedin.com/in/username" className={`${inputCls} mt-1`} value={f.linkedin} onChange={(e) => setF({ ...f, linkedin: e.target.value })} />
             </label>
-            <button className={btnCls}><Save className="h-4 w-4" /> {saved ? "Saved!" : "Save"}</button>
+            <Button className={btnCls}><Save className="h-4 w-4" /> {saved ? "Saved!" : "Save"}</Button>
           </form>
           <div className="mt-5 flex flex-wrap gap-2">
             {p.github && <a className={btnGhost} href={p.github} target="_blank" rel="noreferrer"><Github className="h-4 w-4" /> GitHub</a>}
@@ -91,17 +95,17 @@ function Professional() {
           <h2 className="mb-2 font-display text-xl">Curriculum Vitae</h2>
           <p className="mb-4 text-sm text-muted-foreground">Generate a CV from your profile (save it as PDF from the print window), or upload your own.</p>
           <div className="space-y-3">
-            <button onClick={downloadGenerated} className={`${btnCls} w-full`}><Download className="h-4 w-4" /> Download generated CV (PDF)</button>
-            <label className={`${btnGhost} w-full cursor-pointer`}>
+            <Button onClick={downloadGenerated} className={`${btnCls} w-full`}><Download className="h-4 w-4" /> Download generated CV (PDF)</Button>
+            <label className={`${btnGhost} relative focus-within:ring-2 focus-within:ring-ring w-full cursor-pointer`}>
               <Upload className="h-4 w-4" /> Upload my own CV
-              <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={(e) => uploadCv(e.target.files?.[0])} />
+              <input aria-label="Upload CV" type="file" accept=".pdf,.doc,.docx" className="sr-only" onChange={(e) => uploadCv(e.target.files?.[0])} />
             </label>
             {p.cvFile && (
               <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm">
                 <span className="truncate">{p.cvFileName}</span>
                 <div className="flex gap-3">
-                  <a href={p.cvFile} download={p.cvFileName} className="font-medium text-primary hover:underline">Download</a>
-                  <button className="text-destructive" onClick={() => update((s) => ({ ...s, profile: { ...s.profile, cvFile: "", cvFileName: "" } }))}>Remove</button>
+                  <Button variant="link" onClick={()=>downloadFile(p.cvFile,p.cvFileName)}>Download</Button>
+                  <Button className="text-destructive" onClick={() => update((s) => ({ ...s, profile: { ...s.profile, cvFile: "", cvFileName: "" } }))}>Remove</Button>
                 </div>
               </div>
             )}
