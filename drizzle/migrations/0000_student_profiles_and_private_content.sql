@@ -1,0 +1,12 @@
+CREATE TABLE public.profiles (id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE, data jsonb NOT NULL DEFAULT '{}'::jsonb, updated_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT, INSERT, UPDATE ON public.profiles TO authenticated;
+GRANT ALL ON public.profiles TO service_role;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Read own profile" ON public.profiles FOR SELECT TO authenticated USING (auth.uid() = id);
+CREATE POLICY "Create own profile" ON public.profiles FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
+CREATE POLICY "Update own profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+CREATE FUNCTION public.create_student_profile() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$ BEGIN INSERT INTO public.profiles(id) VALUES (NEW.id); RETURN NEW; END; $$;
+CREATE TRIGGER student_profile_on_signup AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.create_student_profile();
+CREATE POLICY "Student reads own files" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'student-content' AND (storage.foldername(name))[1] = auth.uid()::text);
+CREATE POLICY "Student uploads own files" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'student-content' AND (storage.foldername(name))[1] = auth.uid()::text);
+CREATE POLICY "Student removes own files" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'student-content' AND (storage.foldername(name))[1] = auth.uid()::text);
