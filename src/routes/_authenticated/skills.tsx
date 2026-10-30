@@ -1,12 +1,15 @@
+import { Button } from "@/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Card, PageTitle, btnCls, delBtn, inputCls } from "@/components/Shell";
 import { uid, useStore, type Skill } from "@/lib/store";
 
-export const Route = createFileRoute("/skills")({
+export const Route = createFileRoute("/_authenticated/skills")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "My Skills | Africa University" },
       { name: "description", content: "Add, view and remove your technical and professional skills." },
       { property: "og:title", content: "My Skills | Africa University" },
@@ -40,14 +43,14 @@ function Skills() {
       <PageTitle title="My Skills" subtitle="Technical, academic and professional skills." />
       <Card className="mb-6">
         <form onSubmit={add} className="flex flex-col gap-3 sm:flex-row">
-          <input className={inputCls} placeholder="e.g. React, Teamwork" value={name} onChange={(e) => setName(e.target.value)} />
-          <select className={`${inputCls} sm:w-44`} value={level} onChange={(e) => setLevel(e.target.value as Skill["level"])}>
+          <input className={inputCls} aria-label="e.g. React, Teamwork" placeholder="e.g. React, Teamwork" value={name} onChange={(e) => setName(e.target.value)} />
+          <select aria-label="Skill level" className={`${inputCls} sm:w-44`} value={level} onChange={(e) => setLevel(e.target.value as Skill["level"])}>
             <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
           </select>
-          <button className={btnCls}><Plus className="h-4 w-4" /> Add skill</button>
+          <Button className={btnCls}><Plus className="h-4 w-4" /> Add skill</Button>
         </form>
       </Card>
-      <input className={`${inputCls} mb-4`} placeholder="Search skills…" value={q} onChange={(e) => setQ(e.target.value)} />
+      <input className={`${inputCls} mb-4`} aria-label="Search skills…" placeholder="Search skills…" value={q} onChange={(e) => setQ(e.target.value)} />
       {list.length === 0 && <p className="text-muted-foreground">No skills found.</p>}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((s) => (
@@ -57,9 +60,9 @@ function Skills() {
                 <div className="font-semibold">{s.name}</div>
                 <div className="text-xs text-muted-foreground">{s.level}</div>
               </div>
-              <button className={delBtn} aria-label={`Delete ${s.name}`} onClick={() => confirm(`Delete "${s.name}"?`) && update((st) => ({ ...st, skills: st.skills.filter((x) => x.id !== s.id) }))}>
+              <Button className={delBtn} aria-label={`Delete ${s.name}`} onClick={() => confirm(`Delete "${s.name}"?`) && update((st) => ({ ...st, skills: st.skills.filter((x) => x.id !== s.id) }))}>
                 <Trash2 className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
             <div className="mt-3 h-1.5 rounded-full bg-muted"><div className={`h-full rounded-full bg-accent ${levelWidth[s.level]}`} /></div>
           </Card>

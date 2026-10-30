@@ -1,12 +1,17 @@
+import { CloudImage } from "@/lib/cloud-files";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ImagePlus, Plus, Trash2, X } from "lucide-react";
 import { Card, PageTitle, btnCls, btnGhost, delBtn, inputCls } from "@/components/Shell";
 import { readImage, uid, useStore, type Club } from "@/lib/store";
 
-export const Route = createFileRoute("/clubs")({
+export const Route = createFileRoute("/_authenticated/clubs")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Clubs, Associations & Activities | Africa University" },
       { name: "description", content: "Your clubs, associations and activities with photo galleries." },
       { property: "og:title", content: "Clubs & Activities | Africa University" },
@@ -31,7 +36,7 @@ function Clubs() {
 
   const upload = async (id: string, files: FileList | null) => {
     if (!files) return;
-    const imgs = await Promise.all(Array.from(files).map((file) => readImage(file, 900)));
+    let imgs: string[]; try { imgs = await Promise.all(Array.from(files).map((file) => readImage(file, 900))); } catch(e) {alert(e instanceof Error ? e.message : "Photo upload failed");return;}
     update((s) => ({ ...s, clubs: s.clubs.map((c) => (c.id === id ? { ...c, photos: [...c.photos, ...imgs] } : c)) }));
   };
 
@@ -42,18 +47,18 @@ function Clubs() {
       <PageTitle title="Clubs, Associations & Activities" subtitle="Share what you're involved in — with pictures." />
       <Card className="mb-6">
         <form onSubmit={add} className="grid gap-3 sm:grid-cols-4">
-          <input required className={`${inputCls} sm:col-span-2`} placeholder="Name (e.g. Debate Club)" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-          <select className={inputCls} value={f.type} onChange={(e) => setF({ ...f, type: e.target.value as Club["type"] })}>
+          <input required className={`${inputCls} sm:col-span-2`} aria-label="Name (e.g. Debate Club)" placeholder="Name (e.g. Debate Club)" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+          <select aria-label="Activity type" className={inputCls} value={f.type} onChange={(e) => setF({ ...f, type: e.target.value as Club["type"] })}>
             <option>Club</option><option>Association</option><option>Activity</option>
           </select>
-          <input className={inputCls} placeholder="Your role" value={f.role} onChange={(e) => setF({ ...f, role: e.target.value })} />
-          <button className={`${btnCls} sm:col-span-4`}><Plus className="h-4 w-4" /> Add</button>
+          <input className={inputCls} aria-label="Your role" placeholder="Your role" value={f.role} onChange={(e) => setF({ ...f, role: e.target.value })} />
+          <Button className={`${btnCls} sm:col-span-4`}><Plus className="h-4 w-4" /> Add</Button>
         </form>
       </Card>
 
       <div className="mb-4 flex flex-wrap gap-2">
         {(["All", "Club", "Association", "Activity"] as const).map((t) => (
-          <button key={t} onClick={() => setFilter(t)} className={`rounded-full px-3 py-1 text-sm ${filter === t ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{t}</button>
+          <Button aria-pressed={filter === t} key={t} onClick={() => setFilter(t)} className={`rounded-full px-3 py-1 text-sm ${filter === t ? "bg-primary text-primary-foreground" : "bg-muted"}`}>{t}</Button>
         ))}
       </div>
 
@@ -66,27 +71,27 @@ function Clubs() {
                 <p className="text-sm text-muted-foreground">{c.type}{c.role && ` · ${c.role}`}</p>
               </div>
               <div className="flex gap-2">
-                <label className={`${btnGhost} cursor-pointer`}>
+                <label className={`${btnGhost} relative focus-within:ring-2 focus-within:ring-ring cursor-pointer`}>
                   <ImagePlus className="h-4 w-4" /> Upload pictures
-                  <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => upload(c.id, e.target.files)} />
+                  <input aria-label="Upload activity pictures" type="file" accept="image/*" multiple className="sr-only" onChange={(e) => upload(c.id, e.target.files)} />
                 </label>
-                <button className={delBtn} aria-label="Delete" onClick={() => confirm(`Delete "${c.name}"?`) && update((s) => ({ ...s, clubs: s.clubs.filter((x) => x.id !== c.id) }))}>
+                <Button className={delBtn} aria-label="Delete" onClick={() => confirm(`Delete "${c.name}"?`) && update((s) => ({ ...s, clubs: s.clubs.filter((x) => x.id !== c.id) }))}>
                   <Trash2 className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
             </div>
             {c.photos.length > 0 ? (
               <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 {c.photos.map((src, i) => (
                   <div key={i} className="group relative aspect-square overflow-hidden rounded-lg">
-                    <img src={src} alt={`${c.name} ${i + 1}`} className="h-full w-full cursor-zoom-in object-cover transition group-hover:scale-105" onClick={() => setView(src)} />
-                    <button
-                      className="absolute right-1 top-1 rounded-full bg-card/90 p-1 text-destructive opacity-0 group-hover:opacity-100"
+                    <Button variant="ghost" className="h-full w-full p-0" aria-label={`Enlarge ${c.name} photo ${i+1}`} onClick={() => setView(src)}><CloudImage src={src} alt={`${c.name} ${i + 1}`} className="h-full w-full cursor-zoom-in object-cover transition group-hover:scale-105" /></Button>
+                    <Button
+                      className="absolute right-1 top-1 rounded-full bg-card/90 p-1 text-destructive opacity-100"
                       aria-label="Remove picture"
                       onClick={() => update((s) => ({ ...s, clubs: s.clubs.map((x) => (x.id === c.id ? { ...x, photos: x.photos.filter((_, j) => j !== i) } : x)) }))}
                     >
                       <X className="h-3.5 w-3.5" />
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>
@@ -97,11 +102,7 @@ function Clubs() {
         ))}
       </div>
 
-      {view && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/80 p-4" onClick={() => setView(null)}>
-          <img src={view} alt="Enlarged" className="max-h-full max-w-full rounded-lg" />
-        </div>
-      )}
+      <Dialog open={Boolean(view)} onOpenChange={(open)=>{if(!open)setView(null)}}><DialogContent><DialogTitle>Activity photo</DialogTitle>{view && <CloudImage src={view} alt="Activity photo" className="max-h-[75vh] w-full object-contain"/>}</DialogContent></Dialog>
     </>
   );
 }

@@ -1,4 +1,9 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from "react";
+
+import { supabase } from "@/integrations/supabase/client";
+import { studentSchema } from "./profile-backup";
+import { uploadDataUrl } from "./cloud-files";
+import { toast } from "sonner";
 
 export type Skill = { id: string; name: string; level: "Beginner" | "Intermediate" | "Advanced" };
 export type Project = { id: string; title: string; description: string; tech: string; github: string };
@@ -29,7 +34,6 @@ export type Profile = {
 
 export type Store = {
   profile: Profile;
-  password: string;
   skills: Skill[];
   projects: Project[];
   certificates: Certificate[];
@@ -40,7 +44,7 @@ export type Store = {
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
-const initial: Store = {
+export const initial: Store = {
   profile: {
     name: "Tadiwa Moyo",
     studentId: "AU-2023-04817",
@@ -60,7 +64,6 @@ const initial: Store = {
     cvFile: "",
     cvFileName: "",
   },
-  password: "student123",
   skills: [
     { id: uid(), name: "HTML & CSS", level: "Advanced" },
     { id: uid(), name: "JavaScript", level: "Intermediate" },
@@ -85,38 +88,45 @@ const initial: Store = {
   ],
 };
 
-const KEY = "au-student-profile-v1";
-
-type Ctx = { data: Store; update: (fn: (s: Store) => Store) => void; ready: boolean };
+type Ctx = { data: Store; update: (fn: (s: Store) => Store) => void; ready: boolean; status: string; retry: () => void };
 const StoreCtx = createContext<Ctx | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<Store>(initial);
   const [ready, setReady] = useState(false);
-
+  const [status, setStatus] = useState("Loading profile…");
+  const current = useRef(initial);
+  const owner = useRef("");
+  const queue = useRef(Promise.resolve());
+  const revision = useRef(0);
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) setData({ ...initial, ...JSON.parse(raw) });
-    } catch {
-      /* ignore */
-    }
-    setReady(true);
+    let active = true;
+    void (async () => {
+      const {data: auth,error: authError} = await supabase.auth.getUser();
+      if(authError || !auth.user) throw new Error("Please sign in again.");
+      const {data: row,error} = await supabase.from('profiles').select('data').eq('id',auth.user.id).single();
+      if(error) throw error;
+      const parsed=studentSchema.safeParse(row.data);
+      const next=parsed.success ? parsed.data : {...initial, profile:{...initial.profile,name:auth.user.user_metadata.name ?? 'Student',email:auth.user.email ?? '', studentId:'',phone:'',address:'',dob:''},skills:[],projects:[],academic:[],certificates:[],achievements:[],clubs:[]};
+      if(active){owner.current=auth.user.id;current.current=next;setData(next);setReady(true);setStatus('All changes saved');}
+    })().catch(e=>{if(active)setStatus(e.message ?? 'Could not load profile. Please refresh.');});
+    return()=>{active=false};
   }, []);
-
-  const update = (fn: (s: Store) => Store) =>
-    setData((prev) => {
-      const next = fn(prev);
-      try {
-        localStorage.setItem(KEY, JSON.stringify(next));
-      } catch {
-        alert("Storage is full. Try smaller pictures or remove some.");
-        return prev;
-      }
-      return next;
-    });
-
-  return <StoreCtx.Provider value={{ data, update, ready }}>{children}</StoreCtx.Provider>;
+  const persist = (next: Store) => {
+    const version=++revision.current;
+    const userId=owner.current;
+    setStatus('Saving…');
+    queue.current=queue.current.then(async()=>{
+      const clean=studentSchema.parse(next);
+      const cloud={...clean,profile:{...clean.profile,photo:await uploadDataUrl(clean.profile.photo,userId),cvFile:await uploadDataUrl(clean.profile.cvFile,userId)},clubs:await Promise.all(clean.clubs.map(async c=>({...c,photos:await Promise.all(c.photos.map(src=>uploadDataUrl(src,userId)))})))};
+      const {error}=await supabase.from('profiles').update({data:cloud,updated_at:new Date().toISOString()}).eq('id',userId);
+      if(error)throw error;
+      if(version===revision.current){current.current=cloud;setData(cloud);setStatus('All changes saved');}
+    }).catch(()=>{if(version===revision.current)setStatus('Not saved — retry');toast.error('Changes were not saved. Please retry before leaving.');});
+  };
+  const update=(fn: (s: Store)=>Store)=>{if(!ready)return;const next=fn(current.current);current.current=next;setData(next);persist(next);};
+  if(!ready)return <div role="status" className="p-8 text-center">{status}</div>;
+  return <StoreCtx.Provider value={{data,update,ready,status,retry:()=>persist(current.current)}}>{children}</StoreCtx.Provider>;
 }
 
 export function useStore() {
@@ -127,6 +137,7 @@ export function useStore() {
 
 /** Read an image file, downscale it, and return a JPEG data URL. */
 export function readImage(file: File, max = 800): Promise<string> {
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return Promise.reject(new Error("Please select a JPG, PNG or WebP photo."));
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;
@@ -137,7 +148,9 @@ export function readImage(file: File, max = 800): Promise<string> {
         const c = document.createElement("canvas");
         c.width = img.width * scale;
         c.height = img.height * scale;
-        c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
+        const context = c.getContext("2d");
+        if (!context) return reject(new Error("Image processing unavailable"));
+        context.drawImage(img, 0, 0, c.width, c.height);
         resolve(c.toDataURL("image/jpeg", 0.8));
       };
       img.onerror = reject;
