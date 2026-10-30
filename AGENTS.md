@@ -8,4 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
-- Student data lives in browser localStorage via src/lib/store.tsx (StoreProvider in __root); no backend was requested.
+- Student data is stored in owner-scoped Cloud profiles, with private Storage uploads; StoreProvider serializes saves and never stores passwords in profile data.
+- Student routes live under the managed _authenticated layout; the public index is the AU welcome page and /auth handles credential login.
