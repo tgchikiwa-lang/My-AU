@@ -153,5 +153,5 @@ export function passwordStrength(pw: string): { score: number; label: string } {
   if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
   if (/\d/.test(pw)) score++;
   if (/[^A-Za-z0-9]/.test(pw)) score++;
-  return { score, label: ["Very weak", "Weak", "Fair", "Good", "Strong"][score] };
+  return { score, label: ["Very weak", "Weak", "Fair", "Good", "Strong"][score] ?? "Very weak" };
 }
