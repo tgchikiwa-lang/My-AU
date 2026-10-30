@@ -8,3 +8,4 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+- Student data lives in browser localStorage via src/lib/store.tsx (StoreProvider in __root); no backend was requested.
