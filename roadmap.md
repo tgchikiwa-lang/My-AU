@@ -2,3 +2,7 @@
 - [x] Secure login, five student accounts, private cloud profiles and uploads
 - [x] Profile export/import and accessible mobile forms/navigation
 - [x] Verify login, persistence, backup/restore, isolation, and mobile layout
+- [ ] Secure self-service password recovery
+- [ ] Administrator account management and profile review
+- [ ] Enforce disabled account access and assign requested administrator
+- [ ] Apply AU photos and verify requested flows
