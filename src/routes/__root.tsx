@@ -118,7 +118,7 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router=useRouter();
-  useEffect(()=>{const {data}=supabase.auth.onAuthStateChange(event=>{if(event!=='SIGNED_IN'&&event!=='SIGNED_OUT'&&event!=='USER_UPDATED')return;void router.invalidate();if(event!=='SIGNED_OUT')void queryClient.invalidateQueries();});return()=>data.subscription.unsubscribe();},[router,queryClient]);
+  useEffect(()=>{const {data}=supabase.auth.onAuthStateChange((event,session)=>{if(event==='PASSWORD_RECOVERY' && session?.user.id)sessionStorage.setItem('au-recovery',JSON.stringify({id:session.user.id,time:Date.now()}));if(event!=='SIGNED_IN'&&event!=='SIGNED_OUT'&&event!=='USER_UPDATED')return;void router.invalidate();if(event!=='SIGNED_OUT')void queryClient.invalidateQueries();});return()=>data.subscription.unsubscribe();},[router,queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>
