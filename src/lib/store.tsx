@@ -104,6 +104,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     void (async () => {
       const {data: auth,error: authError} = await supabase.auth.getUser();
       if(authError || !auth.user) throw new Error("Please sign in again.");
+      const {data: enabled,error: accessError}=await supabase.rpc('account_is_enabled');
+      if(accessError || !enabled) throw new Error('Account access is disabled. Please contact the university.');
       const {data: row,error} = await supabase.from('profiles').select('data').eq('id',auth.user.id).single();
       if(error) throw error;
       const parsed=studentSchema.safeParse(row.data);
@@ -117,9 +119,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const userId=owner.current;
     setStatus('Saving…');
     queue.current=queue.current.then(async()=>{
+      const {data: enabled,error: accessError}=await supabase.rpc('account_is_enabled');
+      if(accessError || !enabled)throw new Error('Account access is disabled.');
       const clean=studentSchema.parse(next);
       const cloud={...clean,profile:{...clean.profile,photo:await uploadDataUrl(clean.profile.photo,userId),cvFile:await uploadDataUrl(clean.profile.cvFile,userId)},clubs:await Promise.all(clean.clubs.map(async c=>({...c,photos:await Promise.all(c.photos.map(src=>uploadDataUrl(src,userId)))})))};
-      const {error}=await supabase.from('profiles').update({data:cloud,updated_at:new Date().toISOString()}).eq('id',userId);
+      const {error}=await supabase.from('profiles').update({data:cloud,updated_at:new Date().toISOString()}).eq('id',userId).select('id').single();
       if(error)throw error;
       if(version===revision.current){current.current=cloud;setData(cloud);setStatus('All changes saved');}
     }).catch(()=>{if(version===revision.current)setStatus('Not saved — retry');toast.error('Changes were not saved. Please retry before leaving.');});
