@@ -18,6 +18,23 @@ async function requireRole(client: import('@supabase/supabase-js').SupabaseClien
   if (accessError || !enabled || error || !data) throw new Error('Administrator access required.');
 }
 
+export const getAdminProfile = createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await authorize(context.supabase, context.userId);
+    const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+    const { data: target, error } = await supabaseAdmin.auth.admin.getUserById(context.userId);
+    if (error || !target.user) throw new Error('Could not load administrator account.');
+    const { data: roleRow } = await supabaseAdmin.from('user_roles').select('role,created_at' as never).eq('user_id', context.userId).eq('role', 'admin').maybeSingle();
+    return {
+      id: target.user.id,
+      email: target.user.email ?? '',
+      createdAt: target.user.created_at,
+      lastSignIn: target.user.last_sign_in_at ?? null,
+      confirmed: Boolean(target.user.email_confirmed_at),
+      adminSince: (roleRow as { created_at?: string } | null)?.created_at ?? null,
+    };
+  });
+
 export const listStudentAccounts = createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ page: z.number().int().min(1).default(1) }).parse(input))
   .handler(async ({ context, data }) => {
