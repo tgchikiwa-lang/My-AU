@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { getAdminAccess, getAdminProfile } from '@/lib/admin.functions';
 import { supabase } from '@/integrations/supabase/client';
 
-export const Route = createFileRoute('/admin/profile')({
+export const Route = createFileRoute('/admin-profile')({
   ssr: false,
   head: () => ({
     meta: [
