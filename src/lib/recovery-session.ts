@@ -3,6 +3,9 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 const markerKey = 'au-recovery';
 const lifetime = 10 * 60 * 1000;
 
+// Capture before the root auth listener initializes the SDK and clears the fragment.
+export const initialRecoveryUrl = typeof window === 'undefined' ? null : window.location.href;
+
 /** URL hints never grant access without a provider-validated user. */
 export async function validateRecoverySession(auth: SupabaseClient['auth'], url: URL, storage: Storage) {
   const hash = new URLSearchParams(url.hash.slice(1));
