@@ -7,4 +7,6 @@
 - [x] Enforce disabled account access and assign requested administrator
 - [x] Apply AU photos; desktop/mobile rendering verified
 - [x] Correct administrator email to tchikiwa@africau.edu and request a fresh activation link
-- [ ] Verify recovery email delivery and completed password change — requires administrator to open emailed activation/recovery link
+- [x] Verify administrator activation email arrival — confirmed by administrator
+- [x] Fix activation/recovery callback handling; regression tests and invalid-link protection pass; fresh recovery email requested
+- [ ] Verify administrator completes password update — requires opening the newest email link and choosing a password
