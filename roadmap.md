@@ -8,4 +8,5 @@
 - [x] Apply AU photos; desktop/mobile rendering verified
 - [x] Correct administrator email to tchikiwa@africau.edu and request a fresh activation link
 - [x] Verify administrator activation email arrival — confirmed by administrator
-- [ ] Fix activation/recovery session handling and verify password update
+- [x] Fix activation/recovery callback handling; regression tests and invalid-link protection pass; fresh recovery email requested
+- [ ] Verify administrator completes password update — requires opening the newest email link and choosing a password
