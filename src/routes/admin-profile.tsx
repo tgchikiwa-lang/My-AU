@@ -37,7 +37,7 @@ function AdminProfile() {
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
-    await navigate({ to: '/auth', replace: true });
+    await navigate({ to: '/admin-login', replace: true });
   }
 
   if (access.isPending) return <main className="p-10" role="status">Checking administrator access…</main>;
@@ -47,7 +47,7 @@ function AdminProfile() {
         <ShieldCheck className="mb-5 size-10 text-primary" />
         <h1 className="font-display text-3xl">Administrator access required</h1>
         <p className="my-5 text-muted-foreground">Sign in with an authorized administrator account.</p>
-        <Button asChild><Link to="/auth">Sign in</Link></Button>
+        <Button asChild><Link to="/admin-login">Sign in</Link></Button>
         <Button asChild variant="link"><Link to="/">University home</Link></Button>
       </main>
     );
