@@ -79,12 +79,55 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_requests: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          item_summary: string
+          item_type: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          reviewer_note: string | null
+          status: string
+          student_id: string
+          student_name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          item_summary: string
+          item_type: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_note?: string | null
+          status?: string
+          student_id?: string
+          student_name?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_summary?: string
+          item_type?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_note?: string | null
+          status?: string
+          student_id?: string
+          student_name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       account_is_enabled: { Args: never; Returns: boolean }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

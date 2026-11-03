@@ -15,6 +15,13 @@
       "when": 1793425601996,
       "tag": "0001_administrator_roles_and_account_access",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793669098325,
+      "tag": "0002_verification_requests",
+      "breakpoints": true
     }
   ]
 }

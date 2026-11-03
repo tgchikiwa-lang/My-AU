@@ -14,3 +14,4 @@
 - Account disabling combines an Auth ban with restrictive profile/storage RLS driven by server-managed account_access so previously issued tokens cannot bypass denial; administrator accounts and self-disabling are protected.
 - Password recovery and invitation activation use public authentication pages, validate the provider session and link, remove URL tokens, and sign out after updating the password.
 - Recovery callback validation waits for provider initialization and retains a short-lived user-bound tab marker until password update so token cleanup cannot invalidate an active recovery form.
+- Verification requests are reviewed only by accounts with the server-managed lecturer role (via /staff); RLS lets students insert/withdraw their own pending rows and a trigger stops reviewers changing request content.

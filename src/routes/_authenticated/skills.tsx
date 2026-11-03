@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Card, PageTitle, btnCls, delBtn, inputCls } from "@/components/Shell";
+import { VerifyBadge } from "@/components/VerifyBadge";
 import { uid, useStore, type Skill } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/skills")({
@@ -59,6 +60,7 @@ function Skills() {
               <div>
                 <div className="font-semibold">{s.name}</div>
                 <div className="text-xs text-muted-foreground">{s.level}</div>
+                <VerifyBadge type="skill" id={s.id} summary={`${s.name} (${s.level})`} />
               </div>
               <Button className={delBtn} aria-label={`Delete ${s.name}`} onClick={() => confirm(`Delete "${s.name}"?`) && update((st) => ({ ...st, skills: st.skills.filter((x) => x.id !== s.id) }))}>
                 <Trash2 className="h-4 w-4" />
