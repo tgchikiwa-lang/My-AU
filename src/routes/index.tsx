@@ -2,7 +2,6 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowUpRight, GraduationCap, Users, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import campus from '@/assets/au-home.jpg.asset.json';
-import { toast } from 'sonner';
 
 export const Route=createFileRoute('/')({head:()=>({meta:[{title:'Africa University | University Portal'},{name:'description',content:'Welcome to Africa University. Access your student profile and university community.'},{property:'og:title',content:'Africa University | University Portal'},{property:'og:description',content:'A United Methodist-related institution. Your university community starts here.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:Welcome});
 function Welcome(){return <main className="min-h-screen bg-background">
