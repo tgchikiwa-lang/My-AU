@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Github, Plus, Trash2 } from "lucide-react";
 import { Card, PageTitle, btnCls, delBtn, inputCls } from "@/components/Shell";
+import { VerifyBadge } from "@/components/VerifyBadge";
 import { uid, useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/projects")({
@@ -60,6 +61,7 @@ function Projects() {
                 <span key={t} className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground">{t.trim()}</span>
               ))}
             </div>
+            <VerifyBadge type="project" id={p.id} summary={`${p.title}${p.tech ? ` — ${p.tech}` : ""}${p.github ? ` (${p.github})` : ""}`} />
             {p.github && (
               <a href={p.github} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
                 <Github className="h-4 w-4" /> View on GitHub

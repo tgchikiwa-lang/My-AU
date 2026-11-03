@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Award, Plus, School, Trash2, Trophy } from "lucide-react";
 import { Card, PageTitle, btnCls, delBtn, inputCls } from "@/components/Shell";
+import { VerifyBadge } from "@/components/VerifyBadge";
 import { uid, useStore, type Store } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/academics")({
@@ -22,9 +23,11 @@ export const Route = createFileRoute("/_authenticated/academics")({
 type Key = "academic" | "achievements" | "certificates";
 
 function Section<K extends Key>({
-  k, title, icon, fields, render,
+  k, vtype, summary, title, icon, fields, render,
 }: {
   k: K;
+  vtype: "academic" | "achievement" | "certificate";
+  summary: (item: Store[K][number]) => string;
   title: string;
   icon: React.ReactNode;
   fields: { name: string; placeholder: string; type?: string }[];
@@ -48,7 +51,7 @@ function Section<K extends Key>({
         {items.length === 0 && <li className="py-2 text-sm text-muted-foreground">Nothing added yet.</li>}
         {items.map((it) => (
           <li key={it.id} className="flex items-start justify-between gap-3 py-3">
-            <div className="min-w-0">{render(it as Store[K][number])}</div>
+            <div className="min-w-0">{render(it as Store[K][number])}<VerifyBadge type={vtype} id={it.id} summary={summary(it as Store[K][number])} /></div>
             <Button className={delBtn} aria-label="Delete" onClick={() => confirm("Delete this entry?") && update((s) => ({ ...s, [k]: (s[k] as { id: string }[]).filter((x) => x.id !== it.id) }))}>
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -71,18 +74,18 @@ function Academics() {
       <PageTitle title="Academics & Certificates" subtitle="Your academic history, achievements and certifications in one place." />
       <div className="space-y-6">
         <Section
-          k="academic" title="Academic history" icon={<School className="h-5 w-5 text-primary" />}
+          k="academic" vtype="academic" summary={(a) => `${a.qualification}, ${a.institution} (${a.years}) — ${a.result}`} title="Academic history" icon={<School className="h-5 w-5 text-primary" />}
           fields={[{ name: "institution", placeholder: "Institution" }, { name: "qualification", placeholder: "Qualification" }, { name: "years", placeholder: "Years (e.g. 2020 – 2022)" }, { name: "result", placeholder: "Result / grade" }]}
           render={(a) => (<><div className="font-semibold">{a.qualification}</div><div className="text-sm text-muted-foreground">{a.institution} · {a.years} · {a.result}</div></>)}
         />
         <div className="grid gap-6 lg:grid-cols-2">
           <Section
-            k="achievements" title="Achievements" icon={<Trophy className="h-5 w-5 text-primary" />}
+            k="achievements" vtype="achievement" summary={(a) => `${a.title} (${a.year}) — ${a.description}`} title="Achievements" icon={<Trophy className="h-5 w-5 text-primary" />}
             fields={[{ name: "title", placeholder: "Achievement" }, { name: "year", placeholder: "Year" }, { name: "description", placeholder: "Description" }]}
             render={(a) => (<><div className="font-semibold">{a.title} <span className="text-sm font-normal text-muted-foreground">· {a.year}</span></div><div className="text-sm text-muted-foreground">{a.description}</div></>)}
           />
           <Section
-            k="certificates" title="Certificates" icon={<Award className="h-5 w-5 text-primary" />}
+            k="certificates" vtype="certificate" summary={(c) => `${c.title}, issued by ${c.issuer} (${c.date})`} title="Certificates" icon={<Award className="h-5 w-5 text-primary" />}
             fields={[{ name: "title", placeholder: "Certificate name" }, { name: "issuer", placeholder: "Issued by" }, { name: "date", placeholder: "Date", type: "month" }]}
             render={(c) => (<><div className="font-semibold">{c.title}</div><div className="text-sm text-muted-foreground">{c.issuer} · {c.date}</div></>)}
           />

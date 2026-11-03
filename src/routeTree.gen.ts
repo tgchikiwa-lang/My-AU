@@ -17,6 +17,8 @@ import { Route as AdminProfileRouteImport } from './routes/admin-profile'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as StaffRouteImport } from './routes/staff'
+import { Route as StaffLoginRouteImport } from './routes/staff-login'
 import { Route as AuthenticatedAcademicsRouteImport } from './routes/_authenticated/academics'
 import { Route as AuthenticatedClubsRouteImport } from './routes/_authenticated/clubs'
 import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
@@ -64,6 +66,16 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StaffRoute = StaffRouteImport.update({
+  id: '/staff',
+  path: '/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StaffLoginRoute = StaffLoginRouteImport.update({
+  id: '/staff-login',
+  path: '/staff-login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAcademicsRoute = AuthenticatedAcademicsRouteImport.update({
   id: '/academics',
   path: '/academics',
@@ -109,6 +121,8 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/staff': typeof StaffRoute
+  '/staff-login': typeof StaffLoginRoute
   '/academics': typeof AuthenticatedAcademicsRoute
   '/clubs': typeof AuthenticatedClubsRoute
   '/overview': typeof AuthenticatedOverviewRoute
@@ -125,6 +139,8 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/staff': typeof StaffRoute
+  '/staff-login': typeof StaffLoginRoute
   '/academics': typeof AuthenticatedAcademicsRoute
   '/clubs': typeof AuthenticatedClubsRoute
   '/overview': typeof AuthenticatedOverviewRoute
@@ -143,6 +159,8 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/staff': typeof StaffRoute
+  '/staff-login': typeof StaffLoginRoute
   '/_authenticated/academics': typeof AuthenticatedAcademicsRoute
   '/_authenticated/clubs': typeof AuthenticatedClubsRoute
   '/_authenticated/overview': typeof AuthenticatedOverviewRoute
@@ -161,6 +179,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/staff'
+    | '/staff-login'
     | '/academics'
     | '/clubs'
     | '/overview'
@@ -177,6 +197,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/staff'
+    | '/staff-login'
     | '/academics'
     | '/clubs'
     | '/overview'
@@ -194,6 +216,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/staff'
+    | '/staff-login'
     | '/_authenticated/academics'
     | '/_authenticated/clubs'
     | '/_authenticated/overview'
@@ -212,6 +236,8 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  StaffRoute: typeof StaffRoute
+  StaffLoginRoute: typeof StaffLoginRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -270,6 +296,20 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/staff': {
+      id: '/staff'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof StaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/staff-login': {
+      id: '/staff-login'
+      path: '/staff-login'
+      fullPath: '/staff-login'
+      preLoaderRoute: typeof StaffLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/academics': {
@@ -356,6 +396,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  StaffRoute: StaffRoute,
+  StaffLoginRoute: StaffLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

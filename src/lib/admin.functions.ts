@@ -80,14 +80,18 @@ export const setStudentAccess = createServerFn({ method: 'POST' }).middleware([r
   });
 
 export const inviteStudent = createServerFn({ method: 'POST' }).middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ email: z.string().email(), origin: z.string().url() }).parse(input))
+  .inputValidator((input: unknown) => z.object({ email: z.string().email(), origin: z.string().url(), role: z.enum(['student', 'lecturer']).default('student') }).parse(input))
   .handler(async ({ context, data }) => {
     await authorize(context.supabase, context.userId);
     const { getRequest } = await import('@tanstack/react-start/server');
     const origin = new URL(getRequest().url).origin;
     if (new URL(data.origin).origin !== origin) throw new Error('Invalid invitation return address.');
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
-    const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, { redirectTo: `${origin}/reset-password` });
-    if (error) throw new Error('Invitation could not be sent. Check whether this account already exists.');
+    const { data: invited, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, { redirectTo: `${origin}/reset-password` });
+    if (error || !invited.user) throw new Error('Invitation could not be sent. Check whether this account already exists.');
+    if (data.role === 'lecturer') {
+      const { error: roleError } = await supabaseAdmin.from('user_roles').insert({ user_id: invited.user.id, role: 'lecturer' });
+      if (roleError) throw new Error('Invitation sent, but the lecturer role could not be assigned.');
+    }
     return { success: true };
   });
