@@ -16,19 +16,34 @@ export type Database = {
     Tables: {
       account_access: {
         Row: {
+          created_at: string
           disabled_at: string | null
+          disabled_reason: string | null
+          email: string
+          full_name: string
+          pending_approval: boolean
           updated_at: string
           updated_by: string | null
           user_id: string
         }
         Insert: {
+          created_at?: string
           disabled_at?: string | null
+          disabled_reason?: string | null
+          email?: string
+          full_name?: string
+          pending_approval?: boolean
           updated_at?: string
           updated_by?: string | null
           user_id: string
         }
         Update: {
+          created_at?: string
           disabled_at?: string | null
+          disabled_reason?: string | null
+          email?: string
+          full_name?: string
+          pending_approval?: boolean
           updated_at?: string
           updated_by?: string | null
           user_id?: string
@@ -58,6 +73,63 @@ export type Database = {
           data?: Json
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      records_requests: {
+        Row: {
+          alumni: boolean
+          code_hash: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          kind: string
+          purpose: string
+          recipient_email: string
+          recipient_name: string
+          responded_at: string | null
+          response: string | null
+          routed_to: string
+          status: string
+          student_id: string
+          student_name: string
+          token_hash: string | null
+        }
+        Insert: {
+          alumni?: boolean
+          code_hash?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          kind: string
+          purpose?: string
+          recipient_email?: string
+          recipient_name?: string
+          responded_at?: string | null
+          response?: string | null
+          routed_to?: string
+          status?: string
+          student_id: string
+          student_name?: string
+          token_hash?: string | null
+        }
+        Update: {
+          alumni?: boolean
+          code_hash?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          kind?: string
+          purpose?: string
+          recipient_email?: string
+          recipient_name?: string
+          responded_at?: string | null
+          response?: string | null
+          routed_to?: string
+          status?: string
+          student_id?: string
+          student_name?: string
+          token_hash?: string | null
         }
         Relationships: []
       }
