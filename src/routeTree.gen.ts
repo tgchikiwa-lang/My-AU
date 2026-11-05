@@ -17,6 +17,7 @@ import { Route as AdminProfileRouteImport } from './routes/admin-profile'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as StaffRouteImport } from './routes/staff'
 import { Route as StaffLoginRouteImport } from './routes/staff-login'
 import { Route as AuthenticatedAcademicsRouteImport } from './routes/_authenticated/academics'
@@ -24,8 +25,11 @@ import { Route as AuthenticatedClubsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedOverviewRouteImport } from './routes/_authenticated/overview'
 import { Route as AuthenticatedProfessionalRouteImport } from './routes/_authenticated/professional'
 import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
+import { Route as AuthenticatedReferencesRouteImport } from './routes/_authenticated/references'
+import { Route as AuthenticatedResultsRouteImport } from './routes/_authenticated/results'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedSkillsRouteImport } from './routes/_authenticated/skills'
+import { Route as ReferenceTokenRouteImport } from './routes/reference.$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -66,6 +70,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StaffRoute = StaffRouteImport.update({
   id: '/staff',
   path: '/staff',
@@ -102,6 +111,16 @@ const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
   path: '/projects',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReferencesRoute = AuthenticatedReferencesRouteImport.update({
+  id: '/references',
+  path: '/references',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedResultsRoute = AuthenticatedResultsRouteImport.update({
+  id: '/results',
+  path: '/results',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
   id: '/security',
   path: '/security',
@@ -112,6 +131,11 @@ const AuthenticatedSkillsRoute = AuthenticatedSkillsRouteImport.update({
   path: '/skills',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ReferenceTokenRoute = ReferenceTokenRouteImport.update({
+  id: '/reference/$token',
+  path: '/reference/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -121,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
   '/staff': typeof StaffRoute
   '/staff-login': typeof StaffLoginRoute
   '/academics': typeof AuthenticatedAcademicsRoute
@@ -128,8 +153,11 @@ export interface FileRoutesByFullPath {
   '/overview': typeof AuthenticatedOverviewRoute
   '/professional': typeof AuthenticatedProfessionalRoute
   '/projects': typeof AuthenticatedProjectsRoute
+  '/references': typeof AuthenticatedReferencesRoute
+  '/results': typeof AuthenticatedResultsRoute
   '/security': typeof AuthenticatedSecurityRoute
   '/skills': typeof AuthenticatedSkillsRoute
+  '/reference/$token': typeof ReferenceTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -139,6 +167,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
   '/staff': typeof StaffRoute
   '/staff-login': typeof StaffLoginRoute
   '/academics': typeof AuthenticatedAcademicsRoute
@@ -146,8 +175,11 @@ export interface FileRoutesByTo {
   '/overview': typeof AuthenticatedOverviewRoute
   '/professional': typeof AuthenticatedProfessionalRoute
   '/projects': typeof AuthenticatedProjectsRoute
+  '/references': typeof AuthenticatedReferencesRoute
+  '/results': typeof AuthenticatedResultsRoute
   '/security': typeof AuthenticatedSecurityRoute
   '/skills': typeof AuthenticatedSkillsRoute
+  '/reference/$token': typeof ReferenceTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -159,6 +191,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/signup': typeof SignupRoute
   '/staff': typeof StaffRoute
   '/staff-login': typeof StaffLoginRoute
   '/_authenticated/academics': typeof AuthenticatedAcademicsRoute
@@ -166,8 +199,11 @@ export interface FileRoutesById {
   '/_authenticated/overview': typeof AuthenticatedOverviewRoute
   '/_authenticated/professional': typeof AuthenticatedProfessionalRoute
   '/_authenticated/projects': typeof AuthenticatedProjectsRoute
+  '/_authenticated/references': typeof AuthenticatedReferencesRoute
+  '/_authenticated/results': typeof AuthenticatedResultsRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRoute
   '/_authenticated/skills': typeof AuthenticatedSkillsRoute
+  '/reference/$token': typeof ReferenceTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -179,6 +215,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/signup'
     | '/staff'
     | '/staff-login'
     | '/academics'
@@ -186,8 +223,11 @@ export interface FileRouteTypes {
     | '/overview'
     | '/professional'
     | '/projects'
+    | '/references'
+    | '/results'
     | '/security'
     | '/skills'
+    | '/reference/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -197,6 +237,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/signup'
     | '/staff'
     | '/staff-login'
     | '/academics'
@@ -204,8 +245,11 @@ export interface FileRouteTypes {
     | '/overview'
     | '/professional'
     | '/projects'
+    | '/references'
+    | '/results'
     | '/security'
     | '/skills'
+    | '/reference/$token'
   id:
     | '__root__'
     | '/'
@@ -216,6 +260,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/forgot-password'
     | '/reset-password'
+    | '/signup'
     | '/staff'
     | '/staff-login'
     | '/_authenticated/academics'
@@ -223,8 +268,11 @@ export interface FileRouteTypes {
     | '/_authenticated/overview'
     | '/_authenticated/professional'
     | '/_authenticated/projects'
+    | '/_authenticated/references'
+    | '/_authenticated/results'
     | '/_authenticated/security'
     | '/_authenticated/skills'
+    | '/reference/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -236,8 +284,10 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SignupRoute: typeof SignupRoute
   StaffRoute: typeof StaffRoute
   StaffLoginRoute: typeof StaffLoginRoute
+  ReferenceTokenRoute: typeof ReferenceTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -298,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/staff': {
       id: '/staff'
       path: '/staff'
@@ -347,6 +404,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjectsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/references': {
+      id: '/_authenticated/references'
+      path: '/references'
+      fullPath: '/references'
+      preLoaderRoute: typeof AuthenticatedReferencesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/results': {
+      id: '/_authenticated/results'
+      path: '/results'
+      fullPath: '/results'
+      preLoaderRoute: typeof AuthenticatedResultsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/security': {
       id: '/_authenticated/security'
       path: '/security'
@@ -361,6 +432,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSkillsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/reference/$token': {
+      id: '/reference/$token'
+      path: '/reference/$token'
+      fullPath: '/reference/$token'
+      preLoaderRoute: typeof ReferenceTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -370,6 +448,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOverviewRoute: typeof AuthenticatedOverviewRoute
   AuthenticatedProfessionalRoute: typeof AuthenticatedProfessionalRoute
   AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
+  AuthenticatedReferencesRoute: typeof AuthenticatedReferencesRoute
+  AuthenticatedResultsRoute: typeof AuthenticatedResultsRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
   AuthenticatedSkillsRoute: typeof AuthenticatedSkillsRoute
 }
@@ -380,6 +460,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOverviewRoute: AuthenticatedOverviewRoute,
   AuthenticatedProfessionalRoute: AuthenticatedProfessionalRoute,
   AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
+  AuthenticatedReferencesRoute: AuthenticatedReferencesRoute,
+  AuthenticatedResultsRoute: AuthenticatedResultsRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,
   AuthenticatedSkillsRoute: AuthenticatedSkillsRoute,
 }
@@ -396,8 +478,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SignupRoute: SignupRoute,
   StaffRoute: StaffRoute,
   StaffLoginRoute: StaffLoginRoute,
+  ReferenceTokenRoute: ReferenceTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

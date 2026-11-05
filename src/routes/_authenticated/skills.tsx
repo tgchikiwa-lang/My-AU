@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { useVerifiedIds } from "@/components/VerifyBadge";
 import { Card, PageTitle, btnCls, delBtn, inputCls } from "@/components/Shell";
 import { VerifyBadge } from "@/components/VerifyBadge";
 import { uid, useStore, type Skill } from "@/lib/store";
@@ -24,6 +25,7 @@ const levelWidth = { Beginner: "w-1/3", Intermediate: "w-2/3", Advanced: "w-full
 
 function Skills() {
   const { data, update } = useStore();
+  const verified = useVerifiedIds();
   const [name, setName] = useState("");
   const [level, setLevel] = useState<Skill["level"]>("Beginner");
   const [q, setQ] = useState("");
@@ -62,7 +64,7 @@ function Skills() {
                 <div className="text-xs text-muted-foreground">{s.level}</div>
                 <VerifyBadge type="skill" id={s.id} summary={`${s.name} (${s.level})`} />
               </div>
-              <Button className={delBtn} aria-label={`Delete ${s.name}`} onClick={() => confirm(`Delete "${s.name}"?`) && update((st) => ({ ...st, skills: st.skills.filter((x) => x.id !== s.id) }))}>
+              <Button className={delBtn} disabled={verified.has(`skill:${s.id}`)} title={verified.has(`skill:${s.id}`)?"Verified items cannot be deleted":undefined} aria-label={`Delete ${s.name}`} onClick={() => confirm(`Delete "${s.name}"?`) && update((st) => ({ ...st, skills: st.skills.filter((x) => x.id !== s.id) }))}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Github, Plus, Trash2 } from "lucide-react";
+import { useVerifiedIds } from "@/components/VerifyBadge";
 import { Card, PageTitle, btnCls, delBtn, inputCls } from "@/components/Shell";
 import { VerifyBadge } from "@/components/VerifyBadge";
 import { uid, useStore } from "@/lib/store";
@@ -24,6 +25,7 @@ const empty = { title: "", description: "", tech: "", github: "" };
 
 function Projects() {
   const { data, update } = useStore();
+  const verified = useVerifiedIds();
   const [f, setF] = useState(empty);
 
   const add = (e: React.FormEvent) => {
@@ -51,7 +53,7 @@ function Projects() {
           <Card key={p.id}>
             <div className="flex justify-between gap-2">
               <h3 className="font-display text-lg">{p.title}</h3>
-              <Button className={delBtn} aria-label="Delete project" onClick={() => confirm(`Delete "${p.title}"?`) && update((s) => ({ ...s, projects: s.projects.filter((x) => x.id !== p.id) }))}>
+              <Button className={delBtn} disabled={verified.has(`project:${p.id}`)} title={verified.has(`project:${p.id}`)?"Verified items cannot be deleted":undefined} aria-label="Delete project" onClick={() => confirm(`Delete "${p.title}"?`) && update((s) => ({ ...s, projects: s.projects.filter((x) => x.id !== p.id) }))}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
