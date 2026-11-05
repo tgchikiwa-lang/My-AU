@@ -25,6 +25,7 @@ const empty = { title: "", description: "", tech: "", github: "" };
 
 function Projects() {
   const { data, update } = useStore();
+  const verified = useVerifiedIds();
   const [f, setF] = useState(empty);
 
   const add = (e: React.FormEvent) => {

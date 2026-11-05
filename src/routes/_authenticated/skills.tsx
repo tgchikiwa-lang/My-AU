@@ -25,6 +25,7 @@ const levelWidth = { Beginner: "w-1/3", Intermediate: "w-2/3", Advanced: "w-full
 
 function Skills() {
   const { data, update } = useStore();
+  const verified = useVerifiedIds();
   const [name, setName] = useState("");
   const [level, setLevel] = useState<Skill["level"]>("Beginner");
   const [q, setQ] = useState("");
