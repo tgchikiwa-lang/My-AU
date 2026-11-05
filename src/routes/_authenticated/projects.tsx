@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Github, Plus, Trash2 } from "lucide-react";
+import { useIsVerified } from "@/components/VerifyBadge";
 import { Card, PageTitle, btnCls, delBtn, inputCls } from "@/components/Shell";
 import { VerifyBadge } from "@/components/VerifyBadge";
 import { uid, useStore } from "@/lib/store";

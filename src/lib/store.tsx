@@ -30,7 +30,10 @@ export type Profile = {
   linkedin: string;
   cvFile: string;
   cvFileName: string;
+  cgpa: string;
+  graduated: boolean;
 };
+export type CourseResult = { id: string; code: string; course: string; semester: string; grade: string; credits: string };
 
 export type Store = {
   profile: Profile;
@@ -40,6 +43,7 @@ export type Store = {
   academic: AcademicRecord[];
   achievements: Achievement[];
   clubs: Club[];
+  results: CourseResult[];
 };
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
@@ -63,7 +67,10 @@ export const initial: Store = {
     linkedin: "",
     cvFile: "",
     cvFileName: "",
+    cgpa: "",
+    graduated: false,
   },
+  results: [],
   skills: [
     { id: uid(), name: "HTML & CSS", level: "Advanced" },
     { id: uid(), name: "JavaScript", level: "Intermediate" },
@@ -105,11 +112,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const {data: auth,error: authError} = await supabase.auth.getUser();
       if(authError || !auth.user) throw new Error("Please sign in again.");
       const {data: enabled,error: accessError}=await supabase.rpc('account_is_enabled');
-      if(accessError || !enabled) throw new Error('Account access is disabled. Please contact the university.');
+      if(accessError || !enabled){const {data: acc}=await supabase.from('account_access').select('pending_approval').eq('user_id',auth.user.id).maybeSingle();throw new Error(acc?.pending_approval?'Your registration is waiting for approval by the Records Office. You will be able to use your profile once it is approved.':'Account access is disabled. Please contact the university.');}
       const {data: row,error} = await supabase.from('profiles').select('data').eq('id',auth.user.id).single();
       if(error) throw error;
       const parsed=studentSchema.safeParse(row.data);
-      const next=parsed.success ? parsed.data : {...initial, profile:{...initial.profile,name:auth.user.user_metadata["name"] ?? 'Student',email:auth.user.email ?? '', studentId:'',phone:'',address:'',dob:''},skills:[],projects:[],academic:[],certificates:[],achievements:[],clubs:[]};
+      const next=parsed.success ? parsed.data : {...initial, profile:{...initial.profile,name:auth.user.user_metadata["name"] ?? 'Student',email:auth.user.email ?? '', studentId:'',phone:'',address:'',dob:''},skills:[],projects:[],academic:[],certificates:[],achievements:[],clubs:[],results:[]};
       if(active){owner.current=auth.user.id;current.current=next;setData(next);setReady(true);setStatus('All changes saved');}
     })().catch(e=>{if(active)setStatus(e.message ?? 'Could not load profile. Please refresh.');});
     return()=>{active=false};

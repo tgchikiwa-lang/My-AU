@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import { Menu, X, Home, FolderGit2, Star, GraduationCap, Users, Briefcase, ShieldCheck } from "lucide-react";
+import { Menu, X, FileText, Mail, Home, FolderGit2, Star, GraduationCap, Users, Briefcase, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,8 @@ const nav = [
   { to: "/projects", label: "My Projects", icon: FolderGit2 },
   { to: "/skills", label: "My Skills", icon: Star },
   { to: "/academics", label: "Academics & Certificates", icon: GraduationCap },
+  { to: "/results", label: "Results & Transcripts", icon: FileText },
+  { to: "/references", label: "References", icon: Mail },
   { to: "/clubs", label: "Clubs & Activities", icon: Users },
   { to: "/professional", label: "Professional Profile", icon: Briefcase },
   { to: "/security", label: "Account Security", icon: ShieldCheck },
