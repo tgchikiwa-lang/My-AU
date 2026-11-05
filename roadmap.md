@@ -9,4 +9,5 @@
 - [x] Correct administrator email to tchikiwa@africau.edu and request a fresh activation link
 - [x] Verify administrator activation email arrival — confirmed by administrator
 - [x] Fix activation/recovery callback handling; regression tests and invalid-link protection pass; fresh recovery email requested
-- [ ] Verify administrator completes password update — requires opening the newest email link and choosing a password
+- [ ] Verify administrator completes password update — requires opening the newest email link and choosing a password- [x] SRS points 1 & 2: self sign-up with Records approval, results/CGPA + transcripts, reference links with access codes, lock verified items, Records Office portal, alumni routing
+- [ ] Automatic reference emails — blocked on adding an email sender domain (students currently forward the link/code)
