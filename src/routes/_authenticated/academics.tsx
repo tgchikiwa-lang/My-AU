@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Award, Plus, School, Trash2, Trophy } from "lucide-react";
 import { Card, PageTitle, btnCls, delBtn, inputCls } from "@/components/Shell";
-import { VerifyBadge } from "@/components/VerifyBadge";
+import { VerifyBadge, useVerifiedIds } from "@/components/VerifyBadge";
 import { uid, useStore, type Store } from "@/lib/store";
 
 export const Route = createFileRoute("/_authenticated/academics")({
@@ -37,6 +37,7 @@ function Section<K extends Key>({
   const blank = Object.fromEntries(fields.map((f) => [f.name, ""]));
   const [f, setF] = useState<Record<string, string>>(blank);
   const items = data[k] as Store[K];
+  const verified = useVerifiedIds();
 
   const add = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +53,7 @@ function Section<K extends Key>({
         {items.map((it) => (
           <li key={it.id} className="flex items-start justify-between gap-3 py-3">
             <div className="min-w-0">{render(it as Store[K][number])}<VerifyBadge type={vtype} id={it.id} summary={summary(it as Store[K][number])} /></div>
-            <Button className={delBtn} aria-label="Delete" onClick={() => confirm("Delete this entry?") && update((s) => ({ ...s, [k]: (s[k] as { id: string }[]).filter((x) => x.id !== it.id) }))}>
+            <Button className={delBtn} disabled={verified.has(`${vtype}:${it.id}`)} title={verified.has(`${vtype}:${it.id}`)?"Verified items cannot be deleted":undefined} aria-label="Delete" onClick={() => confirm("Delete this entry?") && update((s) => ({ ...s, [k]: (s[k] as { id: string }[]).filter((x) => x.id !== it.id) }))}>
               <Trash2 className="h-4 w-4" />
             </Button>
           </li>
@@ -80,8 +81,8 @@ function Academics() {
         />
         <div className="grid gap-6 lg:grid-cols-2">
           <Section
-            k="achievements" vtype="achievement" summary={(a) => `${a.title} (${a.year}) — ${a.description}`} title="Achievements" icon={<Trophy className="h-5 w-5 text-primary" />}
-            fields={[{ name: "title", placeholder: "Achievement" }, { name: "year", placeholder: "Year" }, { name: "description", placeholder: "Description" }]}
+            k="achievements" vtype="achievement" summary={(a) => `${a.title} (${a.year}) — ${a.description}`} title="Achievements & hackathons" icon={<Trophy className="h-5 w-5 text-primary" />}
+            fields={[{ name: "title", placeholder: "Achievement or hackathon" }, { name: "year", placeholder: "Year" }, { name: "description", placeholder: "Description" }]}
             render={(a) => (<><div className="font-semibold">{a.title} <span className="text-sm font-normal text-muted-foreground">· {a.year}</span></div><div className="text-sm text-muted-foreground">{a.description}</div></>)}
           />
           <Section
