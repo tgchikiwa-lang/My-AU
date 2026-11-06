@@ -1,0 +1,15 @@
+CREATE TABLE public.user_roles (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE, role text NOT NULL CHECK (role = 'admin'), UNIQUE(user_id, role));
+GRANT SELECT ON public.user_roles TO authenticated;
+GRANT ALL ON public.user_roles TO service_role;
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Read own roles" ON public.user_roles FOR SELECT TO authenticated USING (user_id = auth.uid());
+CREATE TABLE public.account_access (user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE, disabled_at timestamptz, updated_by uuid, updated_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT ON public.account_access TO authenticated;
+GRANT ALL ON public.account_access TO service_role;
+ALTER TABLE public.account_access ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Read own account access" ON public.account_access FOR SELECT TO authenticated USING (user_id = auth.uid());
+CREATE FUNCTION public.account_is_enabled() RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$ SELECT auth.uid() IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.account_access WHERE user_id = auth.uid() AND disabled_at IS NOT NULL) $$;
+REVOKE ALL ON FUNCTION public.account_is_enabled() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.account_is_enabled() TO authenticated, service_role;
+CREATE POLICY "Disabled accounts cannot access profiles" ON public.profiles AS RESTRICTIVE FOR ALL TO authenticated USING (public.account_is_enabled()) WITH CHECK (public.account_is_enabled());
+CREATE POLICY "Disabled accounts cannot access student uploads" ON storage.objects AS RESTRICTIVE FOR ALL TO authenticated USING (bucket_id <> 'student-content' OR public.account_is_enabled()) WITH CHECK (bucket_id <> 'student-content' OR public.account_is_enabled());
