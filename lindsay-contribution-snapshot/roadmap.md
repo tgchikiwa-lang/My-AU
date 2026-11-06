@@ -1,0 +1,12 @@
+- [x] AU welcome page and red/black/white styling
+- [x] Secure login, five student accounts, private cloud profiles and uploads
+- [x] Profile export/import and accessible mobile forms/navigation
+- [x] Verify login, persistence, backup/restore, isolation, and mobile layout
+- [x] Implement self-service password recovery and invalid-link protection
+- [x] Administrator account management and profile review; signed-in review and disable/enable verified
+- [x] Enforce disabled account access and assign requested administrator
+- [x] Apply AU photos; desktop/mobile rendering verified
+- [x] Correct administrator email to tchikiwa@africau.edu and request a fresh activation link
+- [x] Verify administrator activation email arrival — confirmed by administrator
+- [x] Fix activation/recovery callback handling; regression tests and invalid-link protection pass; fresh recovery email requested
+- [ ] Verify administrator completes password update — requires opening the newest email link and choosing a password

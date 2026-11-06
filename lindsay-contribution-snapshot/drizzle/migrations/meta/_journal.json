@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1793341735141,
+      "tag": "0000_student_profiles_and_private_content",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793425601996,
+      "tag": "0001_administrator_roles_and_account_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793669098325,
+      "tag": "0002_verification_requests",
+      "breakpoints": true
+    }
+  ]
+}
