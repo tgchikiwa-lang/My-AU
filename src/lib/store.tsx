@@ -9,7 +9,15 @@ export type Skill = { id: string; name: string; level: "Beginner" | "Intermediat
 export type Project = { id: string; title: string; description: string; tech: string; github: string };
 export type Certificate = { id: string; title: string; issuer: string; date: string };
 export type AcademicRecord = { id: string; institution: string; qualification: string; years: string; result: string };
-export type Achievement = { id: string; title: string; year: string; description: string };
+export type Achievement = {
+  id: string;
+  title: string;
+  year: string;
+  description: string;
+  categories: string[];
+  date: string;
+  evidence: string;
+};
 export type Club = { id: string; name: string; type: "Club" | "Association" | "Activity"; role: string; photos: string[] };
 
 export type Profile = {
@@ -88,8 +96,16 @@ export const initial: Store = {
     { id: uid(), institution: "Hillcrest College", qualification: "A Level", years: "2020 – 2022", result: "15 points" },
   ],
   achievements: [
-    { id: uid(), title: "Dean's List", year: "2024", description: "Top 10% of the faculty for the academic year." },
-  ],
+  {
+    id: uid(),
+    title: "Dean's List",
+    year: "2024",
+    description: "Top 10% of the faculty for the academic year.",
+    categories: ["Academic Awards"],
+    date: "2024-01-01",
+    evidence: ""
+  },
+],
   clubs: [
     { id: uid(), name: "Computer Science Society", type: "Association", role: "Member", photos: [] },
   ],
