@@ -1,3 +1,4 @@
+BEGIN;
 ALTER TABLE public.account_access ADD COLUMN IF NOT EXISTS pending_approval boolean NOT NULL DEFAULT false;
 ALTER TABLE public.account_access ADD COLUMN IF NOT EXISTS email text NOT NULL DEFAULT '';
 ALTER TABLE public.account_access ADD COLUMN IF NOT EXISTS full_name text NOT NULL DEFAULT '';
@@ -69,3 +70,4 @@ GRANT ALL ON public.records_requests TO service_role;
 ALTER TABLE public.records_requests ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Students read own records requests" ON public.records_requests FOR SELECT TO authenticated USING (student_id = auth.uid() AND public.account_is_enabled());
 CREATE POLICY "Records read all records requests" ON public.records_requests FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'records'));
+COMMIT;

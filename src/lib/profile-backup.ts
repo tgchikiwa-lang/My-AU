@@ -11,7 +11,15 @@ export const studentSchema = z.object({
   projects:z.array(z.object({id,title:text,description:text,tech:text,github:url})),
   certificates:z.array(z.object({id,title:text,issuer:text,date:text})),
   academic:z.array(z.object({id,institution:text,qualification:text,years:text,result:text})),
-  achievements:z.array(z.object({id,title:text,year:text,description:text})),
+  achievements: z.array(z.object({
+  id,
+  title: text,
+  year: text,
+  description: text,
+  categories: z.array(z.string().max(80)).default([]),
+  date: text.default(''),
+  evidence: media.default('')
+})),
   clubs:z.array(z.object({id,name:text,type:z.enum(['Club','Association','Activity']),role:text,photos:z.array(media)})),
 });
 export const backupSchema = z.object({version:z.literal(1),data:studentSchema});
