@@ -1,6 +1,6 @@
 # MyAU STUDENT PROFILE
 
-we need to make this website responsive by add java script functionality on every thing, create redirecting sites for better navigation  like My Projects and My Skills allow student to be able to add more skills and delete some skills, a page for all academic history and achievements and certificates student can add delete certifications the overview page shoul have the digital student identification card add a page account security, a page for clubs, associationd and activites student can upload pictures of their club associations and activites, a page of the professional profile where one can download cv link github account to it and LinkedIn link too. where necessary make it better
+we need to make this website responsive by adding java script functionality on every thing, create redirecting sites for better navigation, like My Projects and My Skills which allow students to be able to add more skills and delete some skills, a page for all academic history and achievements and certificates student can add delete certifications the overview page shoul have the digital student identification card add a page account security, a page for clubs, associationd and activites student can upload pictures of their club associations and activites, a page of the professional profile where one can download cv link github account to it and LinkedIn link too. where necessary make it better
 
 This project was built with [Lovable](https://lovable.dev).
 
