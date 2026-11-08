@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/overview")({
   component: Overview,
 });
 
-const fields: [keyof Profile, string, string?][] = [
+const fields: [Exclude<keyof Profile, "graduated">, string, string?][] = [
   ["name", "Full name"],
   ["studentId", "Student ID"],
   ["programme", "Programme"],
@@ -35,11 +35,38 @@ const fields: [keyof Profile, string, string?][] = [
   ["address", "Address"],
 ];
 
+const requiredProfileFields: Exclude<keyof Profile, "graduated">[] = [
+  "name",
+  "studentId",
+  "programme",
+  "faculty",
+  "year",
+  "email",
+];
+
 function Overview() {
-  const { data, update } = useStore();
+  const { data, update, profileComplete } = useStore();
   const p = data.profile;
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(p);
+  const [formError, setFormError] = useState("");
+
+  const beginEditing = () => {
+    setDraft(p);
+    setFormError("");
+    setEditing(true);
+  };
+
+  const saveProfile = () => {
+    if (requiredProfileFields.some((key) => !draft[key].trim())) {
+      setFormError("Complete your name, student ID, programme, faculty, year of study, and email.");
+      return;
+    }
+
+    update((s) => ({ ...s, profile: { ...s.profile, ...draft, photo: s.profile.photo } }));
+    setFormError("");
+    setEditing(false);
+  };
 
   const onPhoto = async (f?: File) => {
     if (!f) return;
@@ -56,7 +83,26 @@ function Overview() {
 
   return (
     <>
-      <PageTitle title={`Welcome, ${p.name.split(" ")[0]}`} subtitle="Your student profile at a glance." />
+      <PageTitle
+        title={`Welcome, ${p.name.trim().split(/\s+/)[0] || "Student"}`}
+        subtitle="Your student profile at a glance."
+      />
+
+      {!profileComplete && (
+        <Card className="mb-6 border-primary/40">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="font-display text-xl">Complete your student profile</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Add your student and academic details to complete your profile.
+              </p>
+            </div>
+            <Button className={btnCls} onClick={beginEditing}>
+              <Pencil className="h-4 w-4" /> Complete profile
+            </Button>
+          </div>
+        </Card>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-6">
@@ -75,25 +121,37 @@ function Overview() {
               {editing ? (
                 <Button
                   className={btnCls}
-                  onClick={() => {
-                    update((s) => ({ ...s, profile: { ...s.profile, ...draft, photo: s.profile.photo } }));
-                    setEditing(false);
-                  }}
+                  onClick={saveProfile}
                 >
                   <Save className="h-4 w-4" /> Save
                 </Button>
               ) : (
-                <Button className={btnGhost} onClick={() => { setDraft(p); setEditing(true); }}>
+                <Button className={btnGhost} onClick={beginEditing}>
                   <Pencil className="h-4 w-4" /> Edit
                 </Button>
               )}
             </div>
+            {formError && (
+              <p role="alert" className="mb-4 text-sm text-destructive">
+                {formError}
+              </p>
+            )}
             <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
               {fields.map(([k, label, type]) => (
                 <div key={k}>
                   <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
                   {editing ? (
-                    <input aria-label={label} type={type ?? "text"} className={inputCls} value={draft[k]} onChange={(e) => setDraft({ ...draft, [k]: e.target.value })} />
+                    <input
+                      aria-label={label}
+                      aria-required={requiredProfileFields.includes(k)}
+                      type={type ?? "text"}
+                      className={inputCls}
+                      value={draft[k]}
+                      onChange={(e) => {
+                        setDraft({ ...draft, [k]: e.target.value });
+                        setFormError("");
+                      }}
+                    />
                   ) : (
                     <dd className="mt-0.5 text-sm">{p[k] || "—"}</dd>
                   )}

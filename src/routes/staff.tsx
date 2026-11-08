@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { inputCls } from '@/components/Shell';
-import { isLecturer } from './staff-login';
+import { hasRecordsOfficeAccess } from './staff-login';
 import { listAccounts, reviewRegistration, setAccountStatus, respondRecordsRequest } from '@/lib/records.functions';
 
 export const Route = createFileRoute('/staff')({
@@ -33,7 +33,7 @@ function Staff() {
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const fetchAccounts = useServerFn(listAccounts); const review = useServerFn(reviewRegistration); const setStatus = useServerFn(setAccountStatus); const respond = useServerFn(respondRecordsRequest);
-  const access = useQuery({ queryKey: ['records-access'], queryFn: isLecturer });
+  const access = useQuery({ queryKey: ['records-access'], queryFn: hasRecordsOfficeAccess });
   const accounts = useQuery({ queryKey: ['records-accounts'], enabled: access.data === true, queryFn: () => fetchAccounts() });
   const queue = useQuery({ queryKey: ['verification-queue'], enabled: access.data === true, queryFn: async () => {
     const { data, error } = await supabase.from('verification_requests').select('*').order('created_at', { ascending: false }); if (error) throw error; return data; } });

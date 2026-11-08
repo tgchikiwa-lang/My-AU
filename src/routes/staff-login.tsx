@@ -18,7 +18,7 @@ export const Route = createFileRoute('/staff-login')({
   component: StaffLogin,
 });
 
-export async function isLecturer() {
+export async function hasRecordsOfficeAccess() {
   const { data } = await supabase.auth.getUser();
   if (!data.user) return false;
   const { data: role } = await supabase.from('user_roles').select('role').eq('user_id', data.user.id).in('role', ['records', 'admin']);
@@ -31,14 +31,14 @@ function StaffLogin() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
-  useEffect(() => { void isLecturer().then(ok => { if (ok) void navigate({ to: '/staff', replace: true }); }); }, [navigate]);
+  useEffect(() => { void hasRecordsOfficeAccess().then(ok => { if (ok) void navigate({ to: '/staff', replace: true }); }); }, [navigate]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setMessage('');
     try {
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (error) throw error;
-      if (!(await isLecturer())) { await supabase.auth.signOut(); setMessage('This account is not registered with the Records Office.'); return; }
+      if (!(await hasRecordsOfficeAccess())) { await supabase.auth.signOut(); setMessage('This account is not registered with the Records Office.'); return; }
       await navigate({ to: '/staff', replace: true });
     } catch { setMessage('Sign-in failed. Check your email and password.'); }
     finally { setBusy(false); }

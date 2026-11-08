@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useRef, type ReactNode 
 
 import { supabase } from "@/integrations/supabase/client";
 import { studentSchema } from "./profile-backup";
+import { createEmptyStore, isEmptyProfileData, isProfileComplete } from "./profile-state";
 import { uploadDataUrl } from "./cloud-files";
 import { toast } from "sonner";
 
@@ -56,104 +57,177 @@ export type Store = {
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
-export const initial: Store = {
-  profile: {
-    name: "Tadiwa Moyo",
-    studentId: "AU-2023-04817",
-    programme: "BSc Computer Information Systems",
-    faculty: "Computing & Social Sciences",
-    year: "Year 2",
-    email: "tadiwa.moyo@africau.edu",
-    phone: "+263 77 123 4567",
-    address: "Fairview Road, Mutare, Zimbabwe",
-    dob: "2004-03-14",
-    nationality: "Zimbabwean",
-    languages: "English, Shona",
-    photo: "",
-    bio: "Computer Information Systems student passionate about web technologies and building tools that help communities.",
-    github: "",
-    linkedin: "",
-    cvFile: "",
-    cvFileName: "",
-    cgpa: "",
-    graduated: false,
-  },
-  results: [],
-  skills: [
-    { id: uid(), name: "HTML & CSS", level: "Advanced" },
-    { id: uid(), name: "JavaScript", level: "Intermediate" },
-    { id: uid(), name: "Python", level: "Intermediate" },
-    { id: uid(), name: "Public Speaking", level: "Beginner" },
-  ],
-  projects: [
-    { id: uid(), title: "Student Profile System", description: "Responsive student dashboard for CIS2103.", tech: "HTML, CSS, JavaScript", github: "" },
-  ],
-  certificates: [
-    { id: uid(), title: "Responsive Web Design", issuer: "freeCodeCamp", date: "2025-06" },
-  ],
-  academic: [
-    { id: uid(), institution: "Africa University", qualification: "BSc Computer Information Systems", years: "2023 – present", result: "In progress" },
-    { id: uid(), institution: "Hillcrest College", qualification: "A Level", years: "2020 – 2022", result: "15 points" },
-  ],
-  achievements: [
-  {
-    id: uid(),
-    title: "Dean's List",
-    year: "2024",
-    description: "Top 10% of the faculty for the academic year.",
-    categories: ["Academic Awards"],
-    date: "2024-01-01",
-    evidence: ""
-  },
-],
-  clubs: [
-    { id: uid(), name: "Computer Science Society", type: "Association", role: "Member", photos: [] },
-  ],
+type Ctx = {
+  data: Store;
+  update: (fn: (s: Store) => Store) => void;
+  ready: boolean;
+  profileComplete: boolean;
+  status: string;
+  retry: () => void;
 };
-
-type Ctx = { data: Store; update: (fn: (s: Store) => Store) => void; ready: boolean; status: string; retry: () => void };
 const StoreCtx = createContext<Ctx | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<Store>(initial);
+  const [data, setData] = useState<Store>(() => createEmptyStore());
   const [ready, setReady] = useState(false);
   const [status, setStatus] = useState("Loading profile…");
-  const current = useRef(initial);
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [profileComplete, setProfileComplete] = useState(false);
+  const current = useRef(data);
   const owner = useRef("");
   const queue = useRef(Promise.resolve());
   const revision = useRef(0);
   useEffect(() => {
     let active = true;
     void (async () => {
-      const {data: auth,error: authError} = await supabase.auth.getUser();
-      if(authError || !auth.user) throw new Error("Please sign in again.");
-      const {data: enabled,error: accessError}=await supabase.rpc('account_is_enabled');
-      if(accessError || !enabled){const {data: acc}=await supabase.from('account_access').select('pending_approval').eq('user_id',auth.user.id).maybeSingle();throw new Error(acc?.pending_approval?'Your registration is waiting for approval by the Records Office. You will be able to use your profile once it is approved.':'Account access is disabled. Please contact the university.');}
-      const {data: row,error} = await supabase.from('profiles').select('data').eq('id',auth.user.id).single();
-      if(error) throw error;
-      const parsed=studentSchema.safeParse(row.data);
-      const next=parsed.success ? parsed.data : {...initial, profile:{...initial.profile,name:auth.user.user_metadata["name"] ?? 'Student',email:auth.user.email ?? '', studentId:'',phone:'',address:'',dob:''},skills:[],projects:[],academic:[],certificates:[],achievements:[],clubs:[],results:[]};
-      if(active){owner.current=auth.user.id;current.current=next;setData(next);setReady(true);setStatus('All changes saved');}
-    })().catch(e=>{if(active)setStatus(e.message ?? 'Could not load profile. Please refresh.');});
-    return()=>{active=false};
-  }, []);
+      const { data: auth, error: authError } = await supabase.auth.getUser();
+      if (authError || !auth.user) throw new Error("Please sign in again.");
+      const { data: enabled, error: accessError } = await supabase.rpc("account_is_enabled");
+      if (accessError) throw new Error("Could not verify account access. Please retry.");
+      if (!enabled) {
+        const { data: access, error } = await supabase
+          .from("account_access")
+          .select("pending_approval")
+          .eq("user_id", auth.user.id)
+          .maybeSingle();
+        if (error) throw new Error("Could not retrieve account access status. Please retry.");
+        throw new Error(
+          access?.pending_approval
+            ? "Your registration is waiting for approval by the Records Office. You will be able to use your profile once it is approved."
+            : "Account access is disabled. Please contact the university.",
+        );
+      }
+
+      const { data: row, error } = await supabase
+        .from("profiles")
+        .select("data")
+        .eq("id", auth.user.id)
+        .maybeSingle();
+      if (error) throw new Error("Could not load your profile. Please retry.");
+
+      const metadataName = auth.user.user_metadata["name"];
+      const empty = createEmptyStore(
+        typeof metadataName === "string" ? metadataName.trim() : "",
+        auth.user.email ?? "",
+      );
+      let next: Store;
+      if (!row) {
+        const { error: insertError } = await supabase
+          .from("profiles")
+          .insert({ id: auth.user.id, data: empty })
+          .select("id")
+          .single();
+        if (insertError) throw new Error("Could not create your profile. Please retry.");
+        next = empty;
+      } else if (isEmptyProfileData(row.data)) {
+        next = empty;
+      } else {
+        const parsed = studentSchema.safeParse(row.data);
+        if (!parsed.success) {
+          throw new Error("Your saved profile data is invalid. Please contact the Records Office.");
+        }
+        next = parsed.data;
+      }
+
+      if (active) {
+        owner.current = auth.user.id;
+        current.current = next;
+        setData(next);
+        setProfileComplete(isProfileComplete(next));
+        setReady(true);
+        setLoadError(false);
+        setStatus("All changes saved");
+      }
+    })().catch((error: unknown) => {
+      if (active) {
+        setLoadError(true);
+        setStatus(
+          error instanceof Error ? error.message : "Could not load your profile. Please retry.",
+        );
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [loadAttempt]);
   const persist = (next: Store) => {
-    const version=++revision.current;
-    const userId=owner.current;
-    setStatus('Saving…');
-    queue.current=queue.current.then(async()=>{
-      const {data: enabled,error: accessError}=await supabase.rpc('account_is_enabled');
-      if(accessError || !enabled)throw new Error('Account access is disabled.');
-      const clean=studentSchema.parse(next);
-      const cloud={...clean,profile:{...clean.profile,photo:await uploadDataUrl(clean.profile.photo,userId),cvFile:await uploadDataUrl(clean.profile.cvFile,userId)},clubs:await Promise.all(clean.clubs.map(async c=>({...c,photos:await Promise.all(c.photos.map(src=>uploadDataUrl(src,userId)))})))};
-      const {error}=await supabase.from('profiles').update({data:cloud,updated_at:new Date().toISOString()}).eq('id',userId).select('id').single();
-      if(error)throw error;
-      if(version===revision.current){current.current=cloud;setData(cloud);setStatus('All changes saved');}
-    }).catch(()=>{if(version===revision.current)setStatus('Not saved — retry');toast.error('Changes were not saved. Please retry before leaving.');});
+    const version = ++revision.current;
+    const userId = owner.current;
+    setStatus("Saving…");
+    queue.current = queue.current
+      .then(async () => {
+        const { data: enabled, error: accessError } = await supabase.rpc("account_is_enabled");
+        if (accessError || !enabled) throw new Error("Account access is disabled.");
+        const clean = studentSchema.parse(next);
+        const cloud = {
+          ...clean,
+          profile: {
+            ...clean.profile,
+            photo: await uploadDataUrl(clean.profile.photo, userId),
+            cvFile: await uploadDataUrl(clean.profile.cvFile, userId),
+          },
+          clubs: await Promise.all(
+            clean.clubs.map(async (club) => ({
+              ...club,
+              photos: await Promise.all(club.photos.map((src) => uploadDataUrl(src, userId))),
+            })),
+          ),
+        };
+        const { error } = await supabase
+          .from("profiles")
+          .update({ data: cloud, updated_at: new Date().toISOString() })
+          .eq("id", userId)
+          .select("id")
+          .single();
+        if (error) throw error;
+        if (version === revision.current) {
+          current.current = cloud;
+          setData(cloud);
+          setProfileComplete(isProfileComplete(cloud));
+          setStatus("All changes saved");
+        }
+      })
+      .catch(() => {
+        if (version === revision.current) setStatus("Not saved — retry");
+        toast.error("Changes were not saved. Please retry before leaving.");
+      });
   };
-  const update=(fn: (s: Store)=>Store)=>{if(!ready)return;const next=fn(current.current);current.current=next;setData(next);persist(next);};
-  if(!ready)return <div role="status" className="p-8 text-center">{status}</div>;
-  return <StoreCtx.Provider value={{data,update,ready,status,retry:()=>persist(current.current)}}>{children}</StoreCtx.Provider>;
+  const update = (fn: (s: Store) => Store) => {
+    if (!ready) return;
+    const next = fn(current.current);
+    current.current = next;
+    setData(next);
+    persist(next);
+  };
+  if (!ready)
+    return (
+      <div className="p-8 text-center">
+        <p role={loadError ? "alert" : "status"}>{status}</p>
+        {loadError && (
+          <button
+            className="mt-4 rounded-md border border-input px-4 py-2 text-sm font-medium hover:bg-muted"
+            onClick={() => setLoadAttempt((attempt) => attempt + 1)}
+          >
+            Retry
+          </button>
+        )}
+      </div>
+    );
+  return (
+    <StoreCtx.Provider
+      value={{
+        data,
+        update,
+        ready,
+        profileComplete,
+        status,
+        retry: () => persist(current.current),
+      }}
+    >
+      {children}
+    </StoreCtx.Provider>
+  );
 }
 
 export function useStore() {
