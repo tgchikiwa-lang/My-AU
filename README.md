@@ -4,7 +4,7 @@ we need to make this website responsive by add java script functionality on ever
 
 This project was built with [Lovable](https://lovable.dev).
 
-## Build with Lovable
+## Build with Lovable and vs code 
 
 Continue developing this project in the [Lovable editor](https://lovable.dev/projects/058e720f-e0fe-4690-9762-3f66793a45f1).
 
