@@ -62,3 +62,40 @@ Before any staging execution:
 6. Test private access behavior, role boundaries, and migration effects with disposable accounts; back up staging and obtain explicit approval before applying any migration.
 
 The local staging migration URL is not configured. **Migration execution remains on hold.**
+
+## Follow-up: automatic student access (migration 0006)
+
+**Prepared, not applied. Not yet database-ready.** The new [`drizzle/migrations/0006_auto_approve_active_students.sql`](./drizzle/migrations/0006_auto_approve_active_students.sql) makes these changes transactionally:
+
+- Replaces `create_student_profile()` so Auth signup creates the owner profile if absent and upserts `account_access` with `pending_approval = false`, Auth email, and the name metadata. The conflict update does not modify `disabled_at`, `disabled_reason`, or `updated_by`, so an existing disable remains in effect.
+- Replaces `account_is_enabled()` with a fail-closed check: a non-null authenticated user must have an `account_access` row whose `disabled_at` is null. `pending_approval` no longer gates access. The function's prior execution revocations/grants are explicitly retained.
+- Backfills missing profile rows and missing access rows from `auth.users`, using Auth email/name and approved status. Users with an active Auth ban (`banned_until > now()`) receive a non-null `disabled_at`; existing access rows for currently banned users are likewise kept disabled. Conflicts do not create duplicates.
+- Clears `pending_approval` only for existing rows where `disabled_at IS NULL`. It never clears `disabled_at`; for a currently banned account with no disable timestamp, it records one rather than granting access.
+
+The existing application's account-disable operation writes `disabled_at` before/with its Auth ban; the migration preserves that state and also fails closed when it finds an active Auth ban without a corresponding timestamp. Verify that the target Supabase Auth schema exposes `auth.users.banned_until` with the expected timestamp semantics before execution. The migration does not alter ownership RLS policies; existing restrictive profile and Storage policies continue to call `account_is_enabled()`, and owner-folder checks remain unchanged.
+
+The repository has no student-import feature. The migration backfill handles existing Auth accounts, including imported users already present in `auth.users`. Future account creation via Supabase Auth signup or the existing privileged invite path will invoke the trigger and start approved. Any future import path must create Auth users through the supported Auth API/trigger or explicitly create profile/access rows with `pending_approval = false`; no import system was added here.
+
+The signup confirmation now tells students they may sign in without staff approval and to confirm email if requested; email-confirmation configuration is unchanged. The prior `StoreProvider` pending-specific denial copy was removed; it still reports disabled access.
+
+### Journal/release gate for migration 0006
+
+The journal remains unchanged because 0004 and 0005 are still unregistered and their target execution state is unknown. Migration 0006 must **not** be registered or applied yet. After verifying the staging migration ledger and schema:
+
+1. If migrations 0004 and 0005 were not applied, reconcile their journal entries at indices 4 and 5, in SQL order, following the checked-in version-7 journal format; review the target state before running them.
+2. If either was applied out of band, reconcile the bookkeeping without scheduling a replay; use a forward-safe reconciliation if the actual schema differs.
+3. Verify `auth.users.banned_until` exists and review current Auth bans against `account_access.disabled_at`, especially accounts missing access rows. Confirm the migration's mapping preserves the intended disabled state.
+4. Only once the migration history and Auth schema are reconciled, register `0006_auto_approve_active_students` as the next entry (index 6), verify the generated migration metadata and run it only against explicitly authorized staging.
+5. Validate signup, pending legacy records, Auth/database ban consistency, account disable/enable and owner-isolation using disposable staging users. Production remains out of scope.
+
+Until that review is complete, the SQL file and source-level tests do not establish that the database is ready or that the migration has run.
+
+### Code-level verification for this follow-up
+
+- TypeScript check: passed.
+- Automated tests: passed, 6 files / 27 tests.
+- Targeted ESLint on `src/routes/signup.tsx`, `src/lib/store.tsx`, and `src/test/instant-account-access.test.ts`: 0 errors, 4 Fast Refresh warnings in `store.tsx`.
+- Production build: passed; existing Vite path-plugin and TanStack Start validator deprecation notices remain.
+- `drizzle-kit check`: passed for the existing journal entries 0000–0003 only. It does not register or execute SQL 0004–0006.
+
+The migration behavior tests inspect SQL and source contracts; no SQL was executed and no authenticated student workflow was tested.

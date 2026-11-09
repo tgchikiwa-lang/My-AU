@@ -113,15 +113,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       if (!enabled) {
         const { data: access, error } = await supabase
           .from("account_access")
-          .select("pending_approval")
+          .select("disabled_at")
           .eq("user_id", auth.user.id)
           .maybeSingle();
         if (error) throw new Error("Could not retrieve account access status. Please retry.");
-        throw new Error(
-          access?.pending_approval
-            ? "Your registration is waiting for approval by the Records Office. You will be able to use your profile once it is approved."
-            : "Account access is disabled. Please contact the university.",
-        );
+        if (!access) {
+          throw new Error("Could not verify account access. Please contact the university.");
+        }
+        if (access.disabled_at) {
+          throw new Error("Account access is disabled. Please contact the university.");
+        }
+        throw new Error("Could not verify account access. Please retry.");
       }
 
       const { data: row, error } = await supabase

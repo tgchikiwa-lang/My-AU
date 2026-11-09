@@ -470,3 +470,24 @@ Only application/config files touched by this work were formatted. Targeted ESLi
 The current SQL facts and conditional migration/journal repair plan are documented in [`MIGRATION_REVIEW_0004.md`](./MIGRATION_REVIEW_0004.md). The journal currently includes 0000–0003 only, even though Git commits `616bb86` and `6014559` added 0004 and 0005 without registering them. `drizzle-kit check` passes against the journal but does not validate or register those unjournaled SQL files. Do not add journal entries or run migrations until maintainers establish whether 0004/0005 were applied to any target. The nominal order is 0004 then 0005 only if both are pending and the database matches the expected 0003 state. Migration 0002's lecturer review policies are still active in the SQL history; their role must not be removed without deciding whether that reviewer capability is obsolete.
 
 No database connection or migration was made. Staging schema/history, roles, grants, Storage bucket configuration, and existing objects remain unknown.
+
+## P. Automatic student account access (2026-11-09)
+
+The requested account-access change is implemented in the branch but has **not** been run against a database:
+
+- New forward migration [`0006_auto_approve_active_students.sql`](./drizzle/migrations/0006_auto_approve_active_students.sql) replaces the Auth signup trigger and `account_is_enabled()`, then idempotently creates missing profile/access rows. Existing records are approved only where `disabled_at IS NULL`; Auth users with a current `banned_until > now()` are marked disabled if necessary, so a missing account-access record does not cause a known Auth ban to be treated as active. Verify `auth.users.banned_until` semantics against staging before execution.
+- New Auth signup/invitation rows use `pending_approval = false`. The access function requires an authenticated user and an existing access row with `disabled_at IS NULL`; pending status is not checked. Existing account-disable state is not overwritten, and existing restrictive profile/Storage RLS continues to call the function with the existing owner checks intact.
+- The project has no student-import function. The migration backfills accounts already in `auth.users`; a future importer must use Auth creation so the trigger runs, or create the approved profile/access records explicitly.
+- Signup confirmation says students may sign in without staff approval and may need to confirm email if requested. Email-confirmation configuration was not changed. The profile loader no longer describes pending status as a reason access was denied; missing access records fail closed.
+- Source-contract tests were added for signup migration behavior, backfill, disabled-account protection, ownership-policy retention, and confirmation copy. These are not database integration tests.
+
+The migration journal still lists only 0000–0003 although SQL files 0004 and 0005 exist. Therefore 0006 is **not database-ready**: first verify target migration history/schema, reconcile 0004/0005 journal state without replaying applied SQL, then register 0006 as index 6 and apply only to authorized staging. No live database, production data, or Auth configuration was touched.
+
+### Verification for automatic access
+
+- TypeScript: **passed**.
+- Automated tests: **passed — 6 files, 27 tests**. New tests assert signup-trigger/backfill SQL contracts, disabled-account preservation, retained ownership/restrictive-policy definitions, and updated confirmation copy. They do not execute SQL.
+- Targeted ESLint (`signup.tsx`, `store.tsx`, new access test): **0 errors, 4 Fast Refresh warnings** in `store.tsx`.
+- Production build: **passed**, with existing Vite path-plugin and TanStack Start validator deprecation notices.
+- `drizzle-kit check`: **passed** for the current journal only (0000–0003). It does not validate or apply the unjournaled migrations 0004–0006.
+- No authenticated signup, database backfill, RLS or Storage operation was tested. No database was connected to, and no migration was applied.

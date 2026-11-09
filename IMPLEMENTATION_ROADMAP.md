@@ -15,6 +15,8 @@ This roadmap reflects the separate GitHub clone at `security/remove-public-env-a
 - Renamed `isLecturer` to `hasRecordsOfficeAccess` in `src/routes/staff-login.tsx` and updated its consumer in `src/routes/staff.tsx`.
 - Excluded the duplicate `lindsay-contribution-snapshot/` from the root lint scan; set Prettier's line-ending mode to `auto` to handle Windows checkout line endings; formatted only source/config files changed by this branch.
 - Updated the migration review to describe the actual upstream 0004/0005 SQL, missing journal entries, surviving lecturer review policies, and safe reconciliation sequence. No migration file was changed, and none was applied.
+- Prepared migration 0006 for approved student signup, fail-closed enabled-account checks, and idempotent backfill of existing Auth accounts; deliberately left the Drizzle journal unchanged pending migration-history verification.
+- Updated the signup confirmation and removed the StoreProvider's pending-approval denial messaging. Updated `AGENTS.md` to reflect the new account-access invariant.
 
 ## Verification on the GitHub clone
 
@@ -28,6 +30,19 @@ These are results from the current clone after the code changes:
 - `git diff --check`: **passed**.
 
 No live database, production environment, student account, or Storage object was accessed. The checks do not verify registration, email confirmation, Records Office approval, authenticated profile persistence, RLS, or private Storage end to end.
+
+## Instant student account access
+
+- New signup and the existing admin invite path use the Auth signup trigger; migration `0006_auto_approve_active_students.sql` sets new account records to `pending_approval = false`.
+- The migration backfills missing profile/access rows from `auth.users` and approves existing access records only where `disabled_at IS NULL`. It maps currently active Auth bans (`banned_until > now()`) to a non-null `disabled_at`, including missing access rows, so Auth-banned users do not become enabled by the backfill. Verify `auth.users.banned_until` semantics on staging before execution.
+- `account_is_enabled()` will require an authenticated user plus an existing, non-disabled access row. Pending status is no longer an access restriction. Existing profile/storage restrictive RLS continues using the function and ownership policies are unchanged.
+- No student import feature exists. The backfill covers accounts already in Auth; future imports must go through the supported Auth trigger or create approved access rows explicitly.
+- Signup confirmation explains that staff approval is not needed and that email confirmation may still be requested; Supabase email-confirmation settings are unchanged.
+- Unit/source-contract tests cover the migration SQL requirements, signup text, and unchanged ownership/restrictive policy definitions. They do not execute SQL or prove live database behavior.
+- Migration 0006 is **not database-ready**: the journal still lacks 0004/0005 and actual applied history is unknown. Keep it unregistered/unapplied until the reconciliation procedure in [`MIGRATION_REVIEW_0004.md`](./MIGRATION_REVIEW_0004.md) is completed on verified staging.
+- Follow-up checks: TypeScript passed; 6 test files / 27 tests passed; targeted ESLint on signup/store/new test reported 0 errors and 4 Fast Refresh warnings; production build passed with existing Vite/TanStack deprecation notices; `drizzle-kit check` passed against only the existing 0000–0003 journal.
+- Full-project ESLint was not rerun for this scoped change. The preceding full-project run reported 1,105 Prettier errors and 20 warnings before the signup-page formatting change, so the current full-project total is unknown; this feature's modified TS/TSX/test files pass targeted lint.
+- No migration or database operation was executed; end-to-end signup, email confirmation, disabled-account behavior, and profile access remain unverified without an authorized staging environment.
 
 ## Public environment-file remediation
 
@@ -52,9 +67,9 @@ The actual database schema, applied-migration history, role rows, grants, RLS po
 
 ## Remaining work before a staging demo
 
-1. Review the local commit and confirm `.env` removal and secret-free `.env.example` before publication.
-2. Verify whether migrations 0004/0005 were applied, reconcile the missing journal entries safely, and inspect live role constraints/values before any staging migration.
-3. Configure an authorized disposable staging Supabase project, email confirmation, and server-only credentials through a trusted secret store. Do not place privileged values in source or browser variables.
-4. Verify staging's actual schema, applied migrations, role assignments, table grants, RLS, bucket visibility, object paths, and legacy profile URLs before changing anything.
-5. After approved staging setup, test registration, confirmation, approval, login/logout, profile completion/save/refresh, cross-user access denial, and Storage upload/download/delete using disposable accounts only.
+1. Review and publish code only through the normal branch/PR process; the `.env` file remains excluded and its local copy is preserved.
+2. Configure an authorized disposable staging Supabase project, email confirmation, and server-only credentials through a trusted secret store. Do not place privileged values in source or browser variables.
+3. Verify staging's actual schema, applied migrations, role assignments, table grants, RLS, bucket visibility, object paths, and legacy profile URLs before changing anything.
+4. Reconcile 0004/0005 migration records first, then review/register/apply 0006 only in authorized staging.
+5. Test signup, email confirmation, automatic access, legacy pending-row backfill, disable/enable, profile save/refresh, cross-user denial, and Storage upload/download/delete using disposable accounts only.
 6. Decide separately whether to normalize formatting across the existing upstream source; avoid mixing a repository-wide reformat into this security/application repair.
