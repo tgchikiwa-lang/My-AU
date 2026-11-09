@@ -7,9 +7,21 @@ import { uploadDataUrl } from "./cloud-files";
 import { toast } from "sonner";
 
 export type Skill = { id: string; name: string; level: "Beginner" | "Intermediate" | "Advanced" };
-export type Project = { id: string; title: string; description: string; tech: string; github: string };
+export type Project = {
+  id: string;
+  title: string;
+  description: string;
+  tech: string;
+  github: string;
+};
 export type Certificate = { id: string; title: string; issuer: string; date: string };
-export type AcademicRecord = { id: string; institution: string; qualification: string; years: string; result: string };
+export type AcademicRecord = {
+  id: string;
+  institution: string;
+  qualification: string;
+  years: string;
+  result: string;
+};
 export type Achievement = {
   id: string;
   title: string;
@@ -19,7 +31,13 @@ export type Achievement = {
   date: string;
   evidence: string;
 };
-export type Club = { id: string; name: string; type: "Club" | "Association" | "Activity"; role: string; photos: string[] };
+export type Club = {
+  id: string;
+  name: string;
+  type: "Club" | "Association" | "Activity";
+  role: string;
+  photos: string[];
+};
 
 export type Profile = {
   name: string;
@@ -42,7 +60,14 @@ export type Profile = {
   cgpa: string;
   graduated: boolean;
 };
-export type CourseResult = { id: string; code: string; course: string; semester: string; grade: string; credits: string };
+export type CourseResult = {
+  id: string;
+  code: string;
+  course: string;
+  semester: string;
+  grade: string;
+  credits: string;
+};
 
 export type Store = {
   profile: Profile;
@@ -238,7 +263,8 @@ export function useStore() {
 
 /** Read an image file, downscale it, and return a JPEG data URL. */
 export function readImage(file: File, max = 800): Promise<string> {
-  if (!/^image\/(jpeg|png|webp)$/.test(file.type)) return Promise.reject(new Error("Please select a JPG, PNG or WebP photo."));
+  if (!/^image\/(jpeg|png|webp)$/.test(file.type))
+    return Promise.reject(new Error("Please select a JPG, PNG or WebP photo."));
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;

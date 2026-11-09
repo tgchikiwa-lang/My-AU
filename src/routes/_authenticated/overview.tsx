@@ -13,9 +13,15 @@ export const Route = createFileRoute("/_authenticated/overview")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { title: "Overview & Digital Student ID | Africa University" },
-      { name: "description", content: "Student profile overview with a digital student identification card." },
+      {
+        name: "description",
+        content: "Student profile overview with a digital student identification card.",
+      },
       { property: "og:title", content: "Overview & Digital Student ID | Africa University" },
-      { property: "og:description", content: "Student profile overview with a digital student identification card." },
+      {
+        property: "og:description",
+        content: "Student profile overview with a digital student identification card.",
+      },
     ],
   }),
   component: Overview,
@@ -70,7 +76,13 @@ function Overview() {
 
   const onPhoto = async (f?: File) => {
     if (!f) return;
-    let photo; try {photo = await readImage(f, 400);} catch(e) {alert(e instanceof Error ? e.message : "Photo upload failed");return;}
+    let photo;
+    try {
+      photo = await readImage(f, 400);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Photo upload failed");
+      return;
+    }
     update((s) => ({ ...s, profile: { ...s.profile, photo } }));
   };
 
@@ -108,7 +120,11 @@ function Overview() {
         <div className="space-y-6">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {stats.map((s) => (
-              <Link key={s.label} to={s.to} className="rounded-xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:shadow-md">
+              <Link
+                key={s.label}
+                to={s.to}
+                className="rounded-xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:shadow-md"
+              >
                 <div className="font-display text-3xl text-primary">{s.n}</div>
                 <div className="text-sm text-muted-foreground">{s.label}</div>
               </Link>
@@ -119,10 +135,7 @@ function Overview() {
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-xl">Personal & academic details</h2>
               {editing ? (
-                <Button
-                  className={btnCls}
-                  onClick={saveProfile}
-                >
+                <Button className={btnCls} onClick={saveProfile}>
                   <Save className="h-4 w-4" /> Save
                 </Button>
               ) : (
@@ -139,7 +152,9 @@ function Overview() {
             <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
               {fields.map(([k, label, type]) => (
                 <div key={k}>
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {label}
+                  </dt>
                   {editing ? (
                     <input
                       aria-label={label}
@@ -163,11 +178,21 @@ function Overview() {
 
         <div>
           <IdCard />
-          <label className={`${btnGhost} relative focus-within:ring-2 focus-within:ring-ring mt-3 w-full cursor-pointer`}>
+          <label
+            className={`${btnGhost} relative focus-within:ring-2 focus-within:ring-ring mt-3 w-full cursor-pointer`}
+          >
             <Camera className="h-4 w-4" /> Change ID photo
-            <input aria-label="Change ID photo" type="file" accept="image/*" className="sr-only" onChange={(e) => onPhoto(e.target.files?.[0])} />
+            <input
+              aria-label="Change ID photo"
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(e) => onPhoto(e.target.files?.[0])}
+            />
           </label>
-          <p className="mt-2 text-center text-xs text-muted-foreground">Demonstration ID for CIS2103 — not an official document.</p>
+          <p className="mt-2 text-center text-xs text-muted-foreground">
+            Demonstration ID for CIS2103 — not an official document.
+          </p>
         </div>
       </div>
     </>
@@ -185,20 +210,34 @@ function IdCard() {
       </div>
       <div className="flex gap-4 p-5">
         <div className="h-28 w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
-          {p.photo ? <CloudImage src={p.photo} alt="Student" className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-3xl">🎓</div>}
+          {p.photo ? (
+            <CloudImage src={p.photo} alt="Student" className="h-full w-full object-cover" />
+          ) : (
+            <div className="grid h-full place-items-center text-3xl">🎓</div>
+          )}
         </div>
         <div className="min-w-0 space-y-1 text-sm">
           <div className="font-display text-lg leading-tight">{p.name}</div>
-          <div><span className="text-muted-foreground">ID:</span> {p.studentId}</div>
-          <div className="truncate"><span className="text-muted-foreground">Prog:</span> {p.programme}</div>
-          <div><span className="text-muted-foreground">Year:</span> {p.year}</div>
+          <div>
+            <span className="text-muted-foreground">ID:</span> {p.studentId}
+          </div>
+          <div className="truncate">
+            <span className="text-muted-foreground">Prog:</span> {p.programme}
+          </div>
+          <div>
+            <span className="text-muted-foreground">Year:</span> {p.year}
+          </div>
         </div>
       </div>
       <div className="flex items-end justify-between px-5 pb-4">
-        <div className="text-xs text-muted-foreground">Valid {new Date().getFullYear()}/{new Date().getFullYear() + 1}</div>
+        <div className="text-xs text-muted-foreground">
+          Valid {new Date().getFullYear()}/{new Date().getFullYear() + 1}
+        </div>
         <QRCodeSVG value={`${p.studentId}|${p.name}|${p.programme}`} size={72} />
       </div>
-      <div className="bg-accent py-1.5 text-center text-xs font-semibold tracking-widest text-accent-foreground">DIGITAL STUDENT ID</div>
+      <div className="bg-accent py-1.5 text-center text-xs font-semibold tracking-widest text-accent-foreground">
+        DIGITAL STUDENT ID
+      </div>
     </div>
   );
 }

@@ -39,7 +39,12 @@ export const initial: Store = {
     },
   ],
   certificates: [
-    { id: "certificate-1", title: "Responsive Web Design", issuer: "freeCodeCamp", date: "2025-06" },
+    {
+      id: "certificate-1",
+      title: "Responsive Web Design",
+      issuer: "freeCodeCamp",
+      date: "2025-06",
+    },
   ],
   academic: [
     {

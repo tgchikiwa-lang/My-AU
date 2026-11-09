@@ -425,9 +425,9 @@ The application repairs were reconciled into a separate clone of the public `tgc
 ### Current source findings
 
 - The GitHub copy is newer than the earlier ZIP: it already contains `drizzle/migrations/0004_records_role.sql` and `0005_records_admin_read_policy.sql`. Its Drizzle journal still contains only migrations 0000–0003. The previously proposed extracted-copy migration `0004_application_roles_and_private_storage.sql` was not copied or renumbered.
-- Current migration 0004 adds a role constraint but does not replace the admin-only constraint created by migration 0001. If migrations 0001–0003 were applied as checked in, migration 0004 is expected to fail due the existing same-named check constraint. The actual live schema/history is unknown; see [`MIGRATION_REVIEW_0004.md`](./MIGRATION_REVIEW_0004.md). Neither migration 0004 nor 0005 was applied.
+- Current migration 0004 drops `user_roles_role_check` and adds a check accepting `student`, `lecturer`, `admin`, and `records`. In a database matching migration 0001, that default constraint name is the expected admin-only check, so 0004 replaces it. Verify the actual constraint name and all existing role values before applying; the migration does not convert role rows. The actual live schema/history is unknown; see [`MIGRATION_REVIEW_0004.md`](./MIGRATION_REVIEW_0004.md). Neither migration 0004 nor 0005 was applied.
 - Migration 0005 changes the `records_requests` read policy to allow both `records` and `admin`; it does not assign roles. The checked-in SQL does not create or privatize `student-content`. Bucket settings and stored object state remain unverified.
-- Active app code uses admin/Records Office roles for privileged operations; `lecturer` remains a reference-request destination rather than a required Auth role. No role data or live policy was inspected.
+- Active app code uses admin/Records Office roles for privileged operations; external lecturer reference requests use a token and code, not lecturer login. However, migration 0002's lecturer verification-request read/review policies remain in the database SQL and are not removed by migration 0003. Thus lecturer remains an active database authorization role unless those policies are deliberately retired. No role assignments or live policy state was inspected.
 
 ### Reconciled code and environment-file changes
 
@@ -445,7 +445,28 @@ The application repairs were reconciled into a separate clone of the public `tgc
 - Automated tests: **passed, 5 files / 22 tests**.
 - Production build: **passed**, with existing Vite path-plugin and TanStack Start validator deprecation notices.
 - Drizzle journal check: **passed**; this did not connect to a database.
-- Full ESLint: **not clean** — 1,289 Prettier formatting errors and 20 warnings remain across the current source checkout. The root source formatting differs from the checked-in Prettier settings; a repository-wide auto-format was avoided to prevent unrelated changes.
+- Full ESLint after formatting branch-touched source files: **not clean** — 1,105 errors and 20 warnings remain in the full repository. The errors are Prettier formatting violations in existing, otherwise untouched files. Targeted ESLint on branch-touched source/config files reports 0 errors and 5 Fast Refresh warnings. No unrelated files were mass-formatted.
 - `git diff --check`: **passed**.
 
 Registration, email confirmation, Records Office approval, authenticated profile reads/writes after refresh, RLS isolation, and Storage behavior remain **unverified end to end**. No authorized staging connection or test account was available. Review [`IMPLEMENTATION_ROADMAP.md`](./IMPLEMENTATION_ROADMAP.md) for the remaining work and safe staging prerequisites.
+
+## O. Resumed branch review (2026-11-09)
+
+The existing local commit is `e0c68454fa790fd230d35032bd8d0daa09fb6544` on `security/remove-public-env-and-merge-repairs`. `origin/main` was fetched successfully and is an ancestor of the branch. No merge, rebase, reset, or other interrupted Git operation was found. A follow-up local commit contains formatting limited to branch-touched source files and corrected report details; nothing has been pushed.
+
+### Credential and feature-preservation checks
+
+- `.env` is absent from the branch's current tree, is not tracked, is ignored by `.gitignore`, and remains on disk locally. `.env.example` contains blank assignments only.
+- A scan of files changed by the existing commit detected no private-key, AWS key ID, GitHub token, or Supabase secret-key patterns. This pattern scan cannot guarantee absence of every possible secret; the earlier no-values history scan found only publishable Supabase configuration. Do not expose local environment values.
+- The existing commit includes the profile onboarding changes, test-only sample fixtures, local campus images, Records Office guard rename, and the audit/migration/roadmap reports. The pending follow-up formats only branch-touched source files. These changes do not remove routes or features; TypeScript and the test suite passed after formatting.
+- No published history was rewritten. The public repository's prior `.env` history remains accessible until the repository owner decides whether to take a separate history-remediation action; this work only removes `.env` from the branch's current tree.
+
+### Lint results and branch delta
+
+Only application/config files touched by this work were formatted. Targeted ESLint on those files reports **0 errors and 5 Fast Refresh warnings**. Full ESLint reports **1,105 errors and 20 warnings**; the formatting errors occur in otherwise untouched existing repository files, not branch-touched source. Broad formatting of unrelated files was avoided.
+
+### Migration interpretation
+
+The current SQL facts and conditional migration/journal repair plan are documented in [`MIGRATION_REVIEW_0004.md`](./MIGRATION_REVIEW_0004.md). The journal currently includes 0000–0003 only, even though Git commits `616bb86` and `6014559` added 0004 and 0005 without registering them. `drizzle-kit check` passes against the journal but does not validate or register those unjournaled SQL files. Do not add journal entries or run migrations until maintainers establish whether 0004/0005 were applied to any target. The nominal order is 0004 then 0005 only if both are pending and the database matches the expected 0003 state. Migration 0002's lecturer review policies are still active in the SQL history; their role must not be removed without deciding whether that reviewer capability is obsolete.
+
+No database connection or migration was made. Staging schema/history, roles, grants, Storage bucket configuration, and existing objects remain unknown.

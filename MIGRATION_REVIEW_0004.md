@@ -16,11 +16,11 @@ The previously reviewed `0004_application_roles_and_private_storage.sql` from th
 
 ### `0004_records_role.sql`
 
-The migration adds a check constraint permitting `student`, `lecturer`, `admin`, and `records` as `user_roles.role` values. It does not insert, update, delete, or convert role rows, and it does not change table grants or RLS policies.
+The migration drops the constraint named `user_roles_role_check` if present, then adds a check permitting `student`, `lecturer`, `admin`, and `records`. It does not insert, update, delete, or convert role rows, and it does not change table grants or RLS policies.
 
-**Blocking safety issue:** migration `0001_administrator_roles_and_account_access.sql` creates `user_roles.role` with an inline `CHECK (role = 'admin')`. PostgreSQL names this inline constraint `user_roles_role_check` by default. Migration 0004 adds a constraint with that same name but does not drop or replace the existing one. If migrations 0001–0003 were applied as checked in, 0004 is expected to fail because the named constraint already exists. Even if its constraint were given a different name, retaining the old admin-only check would continue to reject the other role values. Do not execute 0004 until the repository maintainers reconcile the migration and journal strategy.
+Migration 0001 defines `role text NOT NULL CHECK (role = 'admin')`. PostgreSQL's default name for that single-column check is `user_roles_role_check`, so in a database matching the checked-in 0001 migration, 0004 replaces the admin-only constraint as intended. It is not intrinsically blocked by a duplicate same-named constraint, contrary to an earlier draft of this review.
 
-The SQL itself performs no legacy-role promotion. The role assignment effect in a real database cannot be inferred without inspecting its rows.
+Before applying, inspect the actual constraints: a schema changed out of band could use a different constraint name, leaving another restrictive check in place. Also verify every existing `user_roles.role` value is among the four permitted values; 0004 does not map or delete rows, and an unexpected value would make the new check fail. The role assignments' privilege effects are none because this migration changes only the accepted-value constraint.
 
 ### `0005_records_admin_read_policy.sql`
 
@@ -29,9 +29,11 @@ The migration replaces the named Records Office read policy on `records_requests
 ## Role and authorization consistency
 
 - Migration 0001 defines `admin` as the only accepted role; migration 0003 adds Records Office authorization policies that check for `records` but does not update the role constraint.
-- Migration 0004 intends to permit `student`, `lecturer`, `admin`, and `records`, but as written it does not safely replace the earlier check.
+- Migration 0004 replaces the expected `admin`-only check with a check accepting `student`, `lecturer`, `admin`, and `records`.
 - Current application server code assigns `records` only through its privileged invitation path and checks `admin` or `records` for privileged operations. The Records Office login guard is named `hasRecordsOfficeAccess`.
-- `lecturer` remains a request-routing value for external reference recipients; lecturers submit by a one-time link and code, not through an authenticated lecturer workspace. The current application code does not require an Auth `lecturer` role for that workflow.
+- The database still has lecturer verification-request read and review policies created in migration 0002. Migration 0003 adds Records Office policies but does not remove the lecturer policies; PostgreSQL permissive policies combine with OR semantics. Therefore, although there is no lecturer login/reviewer UI in the active app, the `lecturer` role remains an active database authorization path and must not be removed from the allowed-role constraint until maintainers decide whether that review path is obsolete and explicitly remove or replace its policies in a safe forward migration.
+- Separately, `lecturer` is a request-routing value for external reference recipients: lecturers submit by a one-time link and code, not through an authenticated lecturer workspace. This workflow does not itself require an Auth `lecturer` role. Do not conflate this request value with the still-present lecturer verification RLS policies.
+- The `student` value is permitted by migration 0004, but current app code does not assign a student row in `user_roles`; ordinary student accounts are identified by their Auth/profile and account-access records. The generated Supabase `user_roles.role` field is currently a generic string, not a TypeScript role union.
 - Application role checks and type declarations do not establish which roles are assigned in a live database. No live role rows, custom policies, or extra grants have been inspected.
 
 An ordinary student must not be granted role-table write access. The checked-in migration 0001 grants authenticated users `SELECT` and service role broader access, with an own-row read policy; migration 0004 does not add any write grants. This is a static source review only, not a live authorization test.
@@ -44,16 +46,19 @@ The application stores files under the authenticated user's UUID folder and uses
 
 ## Migration journal and database uncertainty
 
-The checked-in Drizzle journal currently contains entries only for migrations 0000–0003, while SQL files 0004 and 0005 are present. A local `drizzle-kit check` validates the journal it sees; it does not prove that the SQL files were applied, that the live schema matches them, or that migration history is complete.
+The checked-in Drizzle journal currently contains entries only for migrations 0000–0003, while SQL files 0004 and 0005 are present. Git history confirms 0004 was introduced in commit `616bb86` and 0005 in `6014559`, without matching journal entries. A local `drizzle-kit check` validates the registered journal; it does not detect or prove execution of these unregistered SQL files, nor does it prove that the live schema or migration history matches them.
+
+The intended order, if target history confirms all earlier migrations are applied and these two are still pending, is **0004 then 0005**. Migration 0005 alters the exact `"Records read all records requests"` policy created in migration 0003; it therefore depends on 0003's schema/policy being present. It expands read access on `records_requests` from Records-only to Records plus admin; it does not alter role assignments or write access.
+
+Do not append 0004/0005 to the journal merely because the files exist. First compare every target's Drizzle migration ledger and actual schema with the checked-in migrations. If both SQL files are unapplied and the target matches the expected 0003 state, add journal entries at indices 4 and 5, with the exact tags `0004_records_role` and `0005_records_admin_read_policy`, following the existing version-7 metadata conventions; then test execution only on authorized staging. If either SQL file was applied out of band, do not register it as pending and risk rerunning it; reconcile migration bookkeeping using a documented, version-appropriate procedure after confirming the actual effects. If the schema differs or environments have inconsistent histories, prepare a forward-safe reconciliation plan for the verified state rather than editing applied migrations or blindly replaying these files.
 
 Before any staging execution:
 
 1. Obtain an authorized, disposable staging project; keep production disconnected.
-2. Verify the actual schema, constraint names, roles and role rows, grants, RLS policies, Storage bucket settings/objects, and the database migration-history table.
-3. Determine whether 0004/0005 were ever applied outside the checked-in journal and reconcile the repository history without rewriting published migrations.
-4. Have maintainers correct and review the duplicate/admin-only constraint problem using a forward-safe plan appropriate to the verified database state.
-5. Verify the intended role mapping and explicitly authorize any privilege change. Do not convert external lecturer request recipients into staff accounts.
-6. Inventory legacy Storage URLs and objects, then test private access behavior using disposable accounts.
-7. Back up staging and obtain explicit approval before applying any migration. Use the team's approved migration procedure only after those checks.
+2. Verify the actual schema, all role constraint names and role values, assigned roles, grants, RLS policies, Storage bucket settings/objects, and the database migration-history table.
+3. Determine whether 0004/0005 were ever applied outside the checked-in journal and reconcile migration bookkeeping without rewriting published migrations.
+4. Confirm the four allowed database role values are intended. Decide separately whether the lecturer verification policies remain a supported workflow; only remove them through a reviewed forward migration after checking assigned lecturer accounts and operational needs.
+5. Inventory legacy Storage URLs and objects. The checked-in migration set has owner-folder Storage policies but does not create `student-content` or set its privacy; prepare a separate, reviewed bucket-provisioning/private-access migration or approved setup procedure after the existing bucket state and legacy links are known.
+6. Test private access behavior, role boundaries, and migration effects with disposable accounts; back up staging and obtain explicit approval before applying any migration.
 
 The local staging migration URL is not configured. **Migration execution remains on hold.**
